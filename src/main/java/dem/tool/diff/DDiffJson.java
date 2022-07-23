@@ -3,6 +3,7 @@ package dem.tool.diff;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import lombok.Getter;
 
 import java.security.InvalidParameterException;
 import java.util.*;
@@ -10,6 +11,7 @@ import java.util.stream.Collectors;
 
 import static dem.tool.diff.DSampleJson.KEY_JSON_SET;
 
+@Getter
 public class DDiffJson {
     private final Map<String, Object> update = new HashMap<>();
     private final Map<String, Object> delete = new HashMap<>();

@@ -63,4 +63,30 @@ public class DJacksonCommon {
             e.printStackTrace();
         }
     }
+
+    public static <T> T buildToObj(Object payload, Class<T> clazz) {
+        return COMMON_OBJECT_MAPPER.convertValue(payload, clazz);
+    }
+
+    public static <T> T buildToObj(String jsonData, Class<T> clazz) {
+        return buildToObj(jsonData, clazz, null);
+    }
+    public static <T> T buildToObj(String jsonArrData, Class<T> clazz, T defaultValue) {
+        try {
+            return COMMON_OBJECT_MAPPER.readValue(jsonArrData, clazz);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return defaultValue;
+    }
+
+    public static <T> String toStrJsonObj(T input) {
+        try {
+            return COMMON_OBJECT_MAPPER.writeValueAsString(input);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return "{}";
+    }
+
 }
