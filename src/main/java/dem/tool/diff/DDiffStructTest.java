@@ -26,6 +26,8 @@ public class DDiffStructTest {
 
         String jsonOut = DJacksonCommon.toStrJsonObj(diffJson);
         System.out.println(jsonOut);
+        System.out.println(BEFORE_ARRAY_JSON_OBJ);
+        System.out.println(AFTER_ARRAY_JSON_OBJ);
 
     }
 
