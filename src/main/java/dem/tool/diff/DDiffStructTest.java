@@ -4,10 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 
+import java.security.InvalidParameterException;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import static dem.tool.diff.DSampleJson.*;
 
-public class DDiffStruct {
+public class DDiffStructTest {
 
 
     public static void main(String[] args) {
@@ -15,8 +18,8 @@ public class DDiffStruct {
         Map<String, Object> delete = new HashMap<>();
         Map<String, Object> insert = new HashMap<>();
 
-        JsonNode jsonNodeB = DJacksonCommon.jsonTextAsJsonNode(OBJECT_JSON_BEFORE);
-        JsonNode jsonNodeA = DJacksonCommon.jsonTextAsJsonNode(OBJECT_JSON_AFTER);
+        JsonNode jsonNodeB = DJacksonCommon.jsonTextAsJsonNode(BEFORE_ARRAY_JSON_OBJ);
+        JsonNode jsonNodeA = DJacksonCommon.jsonTextAsJsonNode(AFTER_ARRAY_JSON_OBJ);
 
 
         assert jsonNodeB != null;
@@ -31,8 +34,8 @@ public class DDiffStruct {
 
 
     public static void extracted(String prefixkey,
-                                  Map<String, Object> update, Map<String, Object> insert, Map<String, Object> delete,
-                                  JsonNode jsonNodeB, JsonNode jsonNodeA) {
+                                 Map<String, Object> update, Map<String, Object> insert, Map<String, Object> delete,
+                                 JsonNode jsonNodeB, JsonNode jsonNodeA) {
         ArrayList<String> afterField = new ArrayList<>();
         ArrayList<String> beforeField = new ArrayList<>();
 
@@ -73,7 +76,7 @@ public class DDiffStruct {
                 } else if (a.getNodeType() == JsonNodeType.ARRAY) {
                     arrDiff(update, insert, delete, fieldA, a, b);
                 } else {
-                    throw new UnsupportedOperationException("Array is not supported here");
+                    throw new UnsupportedOperationException(a.getNodeType() + " is not supported here");
                 }
             } else {
                 valueDiff(prefixkey + fieldA, update, delete, a, b);
@@ -90,13 +93,12 @@ public class DDiffStruct {
     }
 
     private static void arrDiff(Map<String, Object> update, Map<String, Object> insert, Map<String, Object> delete,
-                                String fieldA, JsonNode a, JsonNode b) {
+                                String prefixKey, JsonNode a, JsonNode b) {
 
         if (!a.isNull() && b.isNull()) {
-            insert.put(fieldA, a);
+            insert.put(prefixKey, a);
             return;
         }
-
 
         ArrayNode afterArr = (ArrayNode) a;
         ArrayNode beforeArr = (ArrayNode) b;
@@ -106,31 +108,103 @@ public class DDiffStruct {
         }
 
         if (beforeArr.isEmpty()) {
-            insert.put(fieldA, afterArr);
+            insert.put(prefixKey, afterArr);
             return;
         }
 
-        String nodeKey = null;
         JsonNode afterNode = afterArr.get(0);
+        if (afterNode.isValueNode()) {
+            Set<String> valueAfter = new HashSet<>();
+            Set<String> valueBefore = new HashSet<>();
+
+            afterArr.forEach(x -> valueAfter.add(x.asText()));
+            beforeArr.forEach(x -> valueBefore.add(x.asText()));
+
+            List<String> valueInserted = valueAfter.stream().filter(x -> !valueBefore.contains(x)).collect(Collectors.toList());
+            List<String> valueDeleted = valueBefore.stream().filter(x -> !valueAfter.contains(x)).collect(Collectors.toList());
+
+            insert.put(prefixKey,valueInserted);
+            delete.put(prefixKey,valueDeleted);
+        } else if (afterNode.getNodeType() == JsonNodeType.ARRAY) {
+
+            arrDiff(update, insert, delete, prefixKey, afterArr, beforeArr);
+
+        } else if (afterNode.getNodeType() == JsonNodeType.OBJECT) {
+
+            String objectKey = findAfterObjectKey(afterNode);
+
+            isBeforeObjectHaveSameKey(beforeArr, objectKey);
+
+            Set<String> checkedKey = new HashSet<>();
+            for (var objectJson : afterArr) {
+
+                JsonNode keyOfObject = objectJson.get(objectKey);
+                if (!keyOfObject.isValueNode()) {
+                    throw new UnsupportedOperationException("value of key must is value node");
+                }
+
+                boolean isBeforeArrContainObjectJson = false;
+                String value = keyOfObject.asText();
+
+                for (var objectJsonBefore : beforeArr) {
+
+                    JsonNode keyBeforeObject = objectJsonBefore.get(objectKey);
+
+                    if (!keyBeforeObject.isValueNode()) {
+                        throw new UnsupportedOperationException("not contains valid key");
+                    }
+                    if (!value.equals(keyBeforeObject.asText())) {
+                        continue;
+                    }
+
+                    isBeforeArrContainObjectJson = true;
+                    extracted(prefixKey + "." + objectKey + "." + value + ".", update, insert, delete, objectJsonBefore, objectJson);
+                }
+
+                if (!isBeforeArrContainObjectJson) {
+                    insert.put(prefixKey + "." + objectKey + "." + value, objectJson);
+                }
+                checkedKey.add(value);
+            }
+
+            for (var objectJsonBefore : beforeArr) {
+
+                JsonNode keyBeforeObject = objectJsonBefore.get(objectKey);
+                if (!checkedKey.contains(keyBeforeObject.asText())) {
+                    delete.put(prefixKey + "." + objectKey + "." + keyBeforeObject.asText(), keyBeforeObject);
+                }
+            }
+
+        } else {
+            throw new UnsupportedOperationException(a.getNodeType() + " is not supported here");
+        }
+
+    }
+
+    private static String findAfterObjectKey(JsonNode afterNode) {
+        String objectKey = null;
         var fieldNames = afterNode.fieldNames();
         while (fieldNames.hasNext()) {
             String fieldName = fieldNames.next();
             if (KEY_JSON_SET.contains(fieldName)) {
-                nodeKey = fieldName;
+                objectKey = fieldName;
                 break;
             }
         }
 
-        if (nodeKey == null) {
-            throw new UnsupportedOperationException("not contains valid key");
+        if (objectKey == null) {
+            throw new InvalidParameterException("not contains valid key " + KEY_JSON_SET.toString());
         }
+        return objectKey;
+    }
 
+    private static void isBeforeObjectHaveSameKey(ArrayNode beforeArr, String objectKey) {
         boolean isNodeContainsValidKey = false;
         JsonNode beforeNode = beforeArr.get(0);
         var beforeFieldNames = beforeNode.fieldNames();
         while (beforeFieldNames.hasNext()) {
             String fieldName = beforeFieldNames.next();
-            if (Objects.equals(fieldName, nodeKey)) {
+            if (Objects.equals(fieldName, objectKey)) {
                 isNodeContainsValidKey = true;
                 break;
             }
@@ -138,33 +212,6 @@ public class DDiffStruct {
 
         if (!isNodeContainsValidKey) {
             throw new UnsupportedOperationException("not contains valid key");
-        }
-
-        for (var node : afterArr) {
-            JsonNode keyValue = node.get(nodeKey);
-            if (!keyValue.isValueNode()) {
-                throw new UnsupportedOperationException("not contains valid key");
-            }
-
-            boolean isBeforeArrContainKeyValue = false;
-            String value = keyValue.asText();
-
-            for (var beforeNodeCompare : beforeArr) {
-                JsonNode beforeKeyValue = beforeNodeCompare.get(nodeKey);
-                if (!beforeKeyValue.isValueNode()) {
-                    throw new UnsupportedOperationException("not contains valid key");
-                }
-                if (!value.equals(beforeKeyValue.asText())) {
-                    continue;
-                }
-
-                isBeforeArrContainKeyValue = true;
-                extracted(fieldA + "." + value + ".", update, insert, delete,  beforeNodeCompare, node);
-            }
-
-            if (!isBeforeArrContainKeyValue) {
-                insert.put(fieldA + "." + value, node);
-            }
         }
     }
 
@@ -195,7 +242,6 @@ public class DDiffStruct {
         if (!a.isNull() && b.isNull()) {
             update.put(prefixKey, a);
         }
-
     }
 
 }
