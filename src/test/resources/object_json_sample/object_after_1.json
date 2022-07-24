@@ -1,0 +1,13 @@
+{
+  "employee":
+  {
+    "employId": "1212",
+    "fullName":"John Miles",
+    "age": 35,
+    "contact":
+    {
+      "email": "john2@xyz.com",
+      "add": "1424"
+    }
+  }
+}

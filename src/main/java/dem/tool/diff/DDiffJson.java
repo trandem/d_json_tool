@@ -9,63 +9,115 @@ import java.security.InvalidParameterException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static dem.tool.diff.DSampleJson.KEY_JSON_SET;
 
-@Getter
 public class DDiffJson {
-    private final Map<String, Object> update = new HashMap<>();
-    private final Map<String, Object> delete = new HashMap<>();
-    private final Map<String, Object> insert = new HashMap<>();
+    @Getter
+    private final Map<String, Object> updated;
+    @Getter
+    private final Map<String, Object> deleted;
+    @Getter
+    private final Map<String, Object> inserted;
 
+    private final Set<String> registeredArrayKeys;
 
-    public void extracted( JsonNode jsonNodeB, JsonNode jsonNodeA) {
-        extracted("",jsonNodeB,jsonNodeA);
+    public DDiffJson() {
+        updated = new HashMap<>();
+        deleted = new HashMap<>();
+        inserted = new HashMap<>();
+        registeredArrayKeys = new HashSet<>(List.of("id", "categoryId"));
     }
-    private void extracted(String prefixkey, JsonNode jsonNodeB, JsonNode jsonNodeA) {
+
+    public String toJsonFormatString() {
+        return DJacksonCommon.toStrJsonObj(this);
+    }
+
+    /**
+     * Register new keys
+     * <p>
+     * Example
+     * <p>
+     * {
+     * "employee": [
+     * {
+     * "employeeId": "1",
+     * "firstName": "Tom",
+     * }
+     * ]
+     * }
+     * <p>
+     * keys = employeeId
+     *
+     * @param keys need to be scanned in json array object
+     */
+    public void registerObjectKeyInArray(String... keys) {
+        registeredArrayKeys.addAll(Set.of(keys));
+    }
+
+    /**
+     * Calculate :
+     * <p>
+     * - updatedMap : fields change value
+     * <p>
+     * - insertedMap : new fields or new values in array
+     * <p>
+     * - deletedMap : fields are deleted.
+     * <p>
+     * We use DFS algorithm to deep scan 2 json object
+     *
+     * @param beforeNode json of object before running logic
+     * @param afterNode  json of object after running logic
+     */
+    public void diffScan(JsonNode beforeNode, JsonNode afterNode) {
+        diffScan("", beforeNode, afterNode);
+    }
+
+    private void diffScan(String prefixKey, JsonNode beforeNode, JsonNode afterNode) {
         ArrayList<String> afterField = new ArrayList<>();
         ArrayList<String> beforeField = new ArrayList<>();
 
-        jsonNodeA.fieldNames().forEachRemaining(afterField::add);
-        jsonNodeB.fieldNames().forEachRemaining(beforeField::add);
-
+        afterNode.fieldNames().forEachRemaining(afterField::add);
+        beforeNode.fieldNames().forEachRemaining(beforeField::add);
 
         // DFS Here
         List<String> checkedField = new ArrayList<>();
         ArrayDeque<String> stack = new ArrayDeque<>();
+
         int index = 0;
         stack.push(afterField.get(index));
         checkedField.add(afterField.get(index));
 
         while (!stack.isEmpty()) {
-            String fieldA = stack.pop();
-            // push lien ke
+            String afterNodeFieldName = stack.pop();
+
+            // push next after field to stack
             if (++index < afterField.size()) {
                 checkedField.add(afterField.get(index));
                 stack.push(afterField.get(index));
             }
 
-            JsonNode a = jsonNodeA.get(fieldA);
-            JsonNode b = jsonNodeB.get(fieldA);
+            JsonNode afterNodeFieldValue = afterNode.get(afterNodeFieldName);
+            JsonNode beforeNodeFieldValue = beforeNode.get(afterNodeFieldName);
 
-            if (!a.isNull() && b == null) {
-                insert.put(prefixkey + fieldA, a);
+            // inserted when after json have a new field
+            if (!afterNodeFieldValue.isNull() && beforeNodeFieldValue == null) {
+                inserted.put(prefixKey + afterNodeFieldName, afterNodeFieldValue);
                 continue;
             }
 
-            if (!a.isValueNode()) {
-                if (a.getNodeType() == JsonNodeType.OBJECT) {
-                    if (b.isNull()) {
-                        insert.put(fieldA, a);
+            if (!afterNodeFieldValue.isValueNode()) {
+                if (afterNodeFieldValue.getNodeType() == JsonNodeType.OBJECT) {
+                    if (beforeNodeFieldValue.isNull()) {
+                        updated.put(prefixKey + afterNodeFieldName, afterNodeFieldValue);
                         continue;
                     }
-                    extracted(fieldA + ".", b, a);
-                } else if (a.getNodeType() == JsonNodeType.ARRAY) {
-                    arrDiff( fieldA, a, b);
+                    diffScan(prefixKey + afterNodeFieldName + ".", beforeNodeFieldValue, afterNodeFieldValue);
+                } else if (afterNodeFieldValue.getNodeType() == JsonNodeType.ARRAY) {
+                    arrDiff(prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue);
                 } else {
-                    throw new UnsupportedOperationException(a.getNodeType() + " is not supported here");
+                    throw new UnsupportedOperationException(afterNodeFieldValue.getNodeType() + " is not supported here");
                 }
             } else {
-                valueDiff(prefixkey + fieldA, a, b);
+                valueDiff(prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue);
             }
         }
 
@@ -73,31 +125,32 @@ public class DDiffJson {
             if (checkedField.contains(beforeFieldName)) {
                 continue;
             }
-            delete.put(beforeFieldName, jsonNodeB.get(beforeFieldName));
+            deleted.put(prefixKey + beforeFieldName, beforeNode.get(beforeFieldName));
         }
 
     }
 
-    private void arrDiff(String prefixKey, JsonNode a, JsonNode b) {
-
-        if (!a.isNull() && b.isNull()) {
-            insert.put(prefixKey, a);
+    private void arrDiff(String prefixKey, JsonNode afterArrayNode, JsonNode beforeArrayNode) {
+        // must check to avoid null pointer casting beforeArrayNode
+        if (!afterArrayNode.isNull() && beforeArrayNode.isNull()) {
+            updated.put(prefixKey, afterArrayNode);
             return;
         }
 
-        ArrayNode afterArr = (ArrayNode) a;
-        ArrayNode beforeArr = (ArrayNode) b;
+        ArrayNode afterArr = (ArrayNode) afterArrayNode;
+        ArrayNode beforeArr = (ArrayNode) beforeArrayNode;
 
         if (afterArr.isEmpty()) {
             return;
         }
 
         if (beforeArr.isEmpty()) {
-            insert.put(prefixKey, afterArr);
+            updated.put(prefixKey, afterArr);
             return;
         }
 
         JsonNode afterNode = afterArr.get(0);
+
         if (afterNode.isValueNode()) {
             Set<String> valueAfter = new HashSet<>();
             Set<String> valueBefore = new HashSet<>();
@@ -108,62 +161,65 @@ public class DDiffJson {
             List<String> valueInserted = valueAfter.stream().filter(x -> !valueBefore.contains(x)).collect(Collectors.toList());
             List<String> valueDeleted = valueBefore.stream().filter(x -> !valueAfter.contains(x)).collect(Collectors.toList());
 
-            insert.put(prefixKey,valueInserted);
-            delete.put(prefixKey,valueDeleted);
+            if (!valueInserted.isEmpty()) {
+                inserted.put(prefixKey, valueInserted);
+            }
+            if (!valueDeleted.isEmpty()) {
+                deleted.put(prefixKey, valueDeleted);
+            }
+
         } else if (afterNode.getNodeType() == JsonNodeType.ARRAY) {
-
-            arrDiff( prefixKey, afterArr, beforeArr);
-
+            arrDiff(prefixKey, afterArr, beforeArr);
         } else if (afterNode.getNodeType() == JsonNodeType.OBJECT) {
+            String keyName = findAfterObjectKey(afterNode);
 
-            String objectKey = findAfterObjectKey(afterNode);
-
-            isBeforeObjectHaveSameKey(beforeArr, objectKey);
+            isBeforeObjectHaveSameKey(beforeArr, keyName);
 
             Set<String> checkedKey = new HashSet<>();
-            for (var objectJson : afterArr) {
-
-                JsonNode keyOfObject = objectJson.get(objectKey);
-                if (!keyOfObject.isValueNode()) {
+            for (var afterObjectJson : afterArr) {
+                JsonNode afterKeyValue = afterObjectJson.get(keyName);
+                if (!afterKeyValue.isValueNode()) {
                     throw new UnsupportedOperationException("value of key must is value node");
                 }
 
-                boolean isBeforeArrContainObjectJson = false;
-                String value = keyOfObject.asText();
+                boolean existedAfterKeyFlag = false;
+                String keyTextValue = afterKeyValue.asText();
 
-                for (var objectJsonBefore : beforeArr) {
+                for (var beforeObjectJson : beforeArr) {
+                    JsonNode beforeKeyValue = beforeObjectJson.get(keyName);
 
-                    JsonNode keyBeforeObject = objectJsonBefore.get(objectKey);
-
-                    if (!keyBeforeObject.isValueNode()) {
+                    if (!beforeKeyValue.isValueNode()) {
                         throw new UnsupportedOperationException("not contains valid key");
                     }
-                    if (!value.equals(keyBeforeObject.asText())) {
+                    if (!keyTextValue.equals(beforeKeyValue.asText())) {
                         continue;
                     }
 
-                    isBeforeArrContainObjectJson = true;
-                    extracted(prefixKey + "." + objectKey + "." + value + ".", objectJsonBefore, objectJson);
+                    existedAfterKeyFlag = true;
+                    diffScan(prefixKey + "." + keyName + "." + keyTextValue + ".", beforeObjectJson, afterObjectJson);
                 }
 
-                if (!isBeforeArrContainObjectJson) {
-                    insert.put(prefixKey + "." + objectKey + "." + value, objectJson);
+                if (!existedAfterKeyFlag) {
+                    inserted.put(prefixKey + "." + keyName + "." + keyTextValue, afterObjectJson);
                 }
-                checkedKey.add(value);
+                checkedKey.add(keyTextValue);
             }
 
-            for (var objectJsonBefore : beforeArr) {
-
-                JsonNode keyBeforeObject = objectJsonBefore.get(objectKey);
-                if (!checkedKey.contains(keyBeforeObject.asText())) {
-                    delete.put(prefixKey + "." + objectKey + "." + keyBeforeObject.asText(), keyBeforeObject);
-                }
-            }
+            findDeletedObjectInArray(prefixKey, beforeArr, keyName, checkedKey);
 
         } else {
-            throw new UnsupportedOperationException(a.getNodeType() + " is not supported here");
+            throw new UnsupportedOperationException(afterArrayNode.getNodeType() + " is not supported here");
         }
 
+    }
+
+    private void findDeletedObjectInArray(String prefixKey, ArrayNode beforeArr, String keyName, Set<String> checkedKey) {
+        for (var jsonObject : beforeArr) {
+            JsonNode keyValue = jsonObject.get(keyName);
+            if (!checkedKey.contains(keyValue.asText())) {
+                deleted.put(prefixKey + "." + keyName + "." + keyValue.asText(), jsonObject);
+            }
+        }
     }
 
     private String findAfterObjectKey(JsonNode afterNode) {
@@ -171,14 +227,14 @@ public class DDiffJson {
         var fieldNames = afterNode.fieldNames();
         while (fieldNames.hasNext()) {
             String fieldName = fieldNames.next();
-            if (KEY_JSON_SET.contains(fieldName)) {
+            if (registeredArrayKeys.contains(fieldName)) {
                 objectKey = fieldName;
                 break;
             }
         }
 
         if (objectKey == null) {
-            throw new InvalidParameterException("not contains valid key " + KEY_JSON_SET.toString());
+            throw new InvalidParameterException("not contains valid key " + registeredArrayKeys.toString());
         }
         return objectKey;
     }
@@ -200,32 +256,32 @@ public class DDiffJson {
         }
     }
 
-    private void valueDiff(String prefixKey, JsonNode a, JsonNode b) {
-        if (a == null && !b.isNull()) {
-            delete.put(prefixKey, b);
+    private void valueDiff(String prefixKey, JsonNode afterValueNode, JsonNode beforeValueNode) {
+        if (afterValueNode == null && !beforeValueNode.isNull()) {
+            deleted.put(prefixKey, beforeValueNode);
             return;
         }
 
-        assert a != null;
-        if (a.isNull() && b.isNull()) {
-            // khong doi
+        assert afterValueNode != null;
+        if (afterValueNode.isNull() && beforeValueNode.isNull()) {
+            // have same value
             return;
         }
-        if (a.isNull() && !b.isNull()) {
-            update.put(prefixKey, a);
+        if (afterValueNode.isNull() && !beforeValueNode.isNull()) {
+            updated.put(prefixKey, afterValueNode);
             return;
         }
 
-        if (!a.isNull() && !b.isNull()) {
-            var x = a.asText();
-            var y = b.asText();
-            if (!x.equals(y)) {
-                update.put(prefixKey, a);
+        if (!afterValueNode.isNull() && !beforeValueNode.isNull()) {
+            var afterValue = afterValueNode.asText();
+            var beforeValue = beforeValueNode.asText();
+            if (!afterValue.equals(beforeValue)) {
+                updated.put(prefixKey, afterValueNode);
             }
         }
 
-        if (!a.isNull() && b.isNull()) {
-            update.put(prefixKey, a);
+        if (!afterValueNode.isNull() && beforeValueNode.isNull()) {
+            updated.put(prefixKey, afterValueNode);
         }
     }
 }

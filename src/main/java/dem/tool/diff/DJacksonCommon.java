@@ -20,8 +20,8 @@ public class DJacksonCommon {
             .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
             .setPropertyNamingStrategy(SNAKE_CASE);
 
-    public static JsonNode loadJsonFromFile(String pathPrefix, String fileName) {
-        String contentAsString = loadFromFileAsString(pathPrefix + "/" + fileName);
+    public static JsonNode loadJsonFromFile(String path) {
+        String contentAsString = loadFromFileAsString(path);
         try {
             return COMMON_OBJECT_MAPPER.readValue(contentAsString, JsonNode.class);
         } catch (IOException e) {
@@ -45,6 +45,7 @@ public class DJacksonCommon {
         return null;
     }
 
+
     public static JsonNode jsonTextAsJsonNode(String json) {
         try {
             return COMMON_OBJECT_MAPPER.readValue(json, JsonNode.class);
@@ -58,7 +59,7 @@ public class DJacksonCommon {
     public static void assertFullOutputEvent(String expected, String actual) {
         try {
             JSONAssert.assertEquals(Objects.requireNonNull(jsonTextAsJsonNode(expected)).toString(),
-                    Objects.requireNonNull(jsonTextAsJsonNode(actual)).toString(), JSONCompareMode.STRICT);
+                    Objects.requireNonNull(jsonTextAsJsonNode(actual)).toString(), JSONCompareMode.LENIENT);
         } catch (JSONException e) {
             e.printStackTrace();
         }
