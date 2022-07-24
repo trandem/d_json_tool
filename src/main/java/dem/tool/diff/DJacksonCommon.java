@@ -59,7 +59,7 @@ public class DJacksonCommon {
     public static void assertFullOutputEvent(String expected, String actual) {
         try {
             JSONAssert.assertEquals(Objects.requireNonNull(jsonTextAsJsonNode(expected)).toString(),
-                    Objects.requireNonNull(jsonTextAsJsonNode(actual)).toString(), JSONCompareMode.LENIENT);
+                    Objects.requireNonNull(jsonTextAsJsonNode(actual)).toString(), JSONCompareMode.STRICT);
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -1,0 +1,41 @@
+{
+  "project": "json_diff",
+  "publisher": null,
+  "outerArr": [
+    {
+      "id": "lol1",
+      "info": {
+        "version": "1.0",
+        "innerArr": [
+          {
+            "id": 1,
+            "game": "lol"
+          }
+        ]
+      }
+    },
+    {
+      "id": "dota",
+      "info": {
+        "version": "2.0",
+        "innerArr": []
+      }
+    },
+    {
+      "id": "tc",
+      "info": {
+        "version": "1.0",
+        "innerArr": [
+          {
+            "id": 1,
+            "game": "tc11"
+          },
+          {
+            "id": 3,
+            "game": "tc3"
+          }
+        ]
+      }
+    }
+  ]
+}

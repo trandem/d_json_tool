@@ -56,11 +56,11 @@ public class DDiffJson {
     /**
      * Calculate :
      * <p>
-     * - updatedMap : fields change value
+     * - updated : fields is not object (objectNode, arrayNode) change value
      * <p>
-     * - insertedMap : new fields or new values in array
+     * - inserted : new fields, new values in array, new object
      * <p>
-     * - deletedMap : fields are deleted.
+     * - deleted : object, array are null, fields are not appeared in afterNode
      * <p>
      * We use DFS algorithm to deep scan 2 json object
      *
@@ -105,12 +105,14 @@ public class DDiffJson {
             }
 
             if (!afterNodeFieldValue.isValueNode()) {
+
                 if (afterNodeFieldValue.getNodeType() == JsonNodeType.OBJECT) {
                     if (beforeNodeFieldValue.isNull()) {
-                        updated.put(prefixKey + afterNodeFieldName, afterNodeFieldValue);
+                        inserted.put(prefixKey + afterNodeFieldName, afterNodeFieldValue);
                         continue;
                     }
                     diffScan(prefixKey + afterNodeFieldName + ".", beforeNodeFieldValue, afterNodeFieldValue);
+
                 } else if (afterNodeFieldValue.getNodeType() == JsonNodeType.ARRAY) {
                     arrDiff(prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue);
                 } else {
@@ -131,86 +133,111 @@ public class DDiffJson {
     }
 
     private void arrDiff(String prefixKey, JsonNode afterArrayNode, JsonNode beforeArrayNode) {
+
         // must check to avoid null pointer casting beforeArrayNode
         if (!afterArrayNode.isNull() && beforeArrayNode.isNull()) {
-            updated.put(prefixKey, afterArrayNode);
+            inserted.put(prefixKey, afterArrayNode);
             return;
         }
 
         ArrayNode afterArr = (ArrayNode) afterArrayNode;
         ArrayNode beforeArr = (ArrayNode) beforeArrayNode;
 
-        if (afterArr.isEmpty()) {
+        if (afterArr.isEmpty() && beforeArr.isEmpty()) {
+            // have same
             return;
         }
 
-        if (beforeArr.isEmpty()) {
-            updated.put(prefixKey, afterArr);
+        if (afterArr.isEmpty() && !beforeArr.isEmpty()){
+            JsonNode beforeNode = beforeArr.get(0);
+            if (beforeNode.isValueNode()) {
+                //valueNodeInArrDiff(prefixKey, afterArr, beforeArr);
+                deleted.put(prefixKey,beforeArr);
+            } else if (beforeNode.getNodeType() == JsonNodeType.ARRAY) {
+                //TODO: implement array in array later
+                throw new UnsupportedOperationException(" array of array value is not supported");
+            } else if (beforeNode.getNodeType() == JsonNodeType.OBJECT) {
+                //calculateDeleteObjectInArr(prefixKey, beforeArr, beforeNode);
+                deleted.put(prefixKey,beforeArr);
+                return;
+            } else {
+                throw new UnsupportedOperationException(afterArrayNode.getNodeType() + " is not supported here");
+            }
             return;
         }
 
         JsonNode afterNode = afterArr.get(0);
-
         if (afterNode.isValueNode()) {
-            Set<String> valueAfter = new HashSet<>();
-            Set<String> valueBefore = new HashSet<>();
-
-            afterArr.forEach(x -> valueAfter.add(x.asText()));
-            beforeArr.forEach(x -> valueBefore.add(x.asText()));
-
-            List<String> valueInserted = valueAfter.stream().filter(x -> !valueBefore.contains(x)).collect(Collectors.toList());
-            List<String> valueDeleted = valueBefore.stream().filter(x -> !valueAfter.contains(x)).collect(Collectors.toList());
-
-            if (!valueInserted.isEmpty()) {
-                inserted.put(prefixKey, valueInserted);
-            }
-            if (!valueDeleted.isEmpty()) {
-                deleted.put(prefixKey, valueDeleted);
-            }
-
+            valueNodeInArrDiff(prefixKey, afterArr, beforeArr);
         } else if (afterNode.getNodeType() == JsonNodeType.ARRAY) {
-            arrDiff(prefixKey, afterArr, beforeArr);
+            //TODO: implement array in array later
+            throw new UnsupportedOperationException(" array of array value is not supported");
         } else if (afterNode.getNodeType() == JsonNodeType.OBJECT) {
-            String keyName = findAfterObjectKey(afterNode);
-
-            isBeforeObjectHaveSameKey(beforeArr, keyName);
-
-            Set<String> checkedKey = new HashSet<>();
-            for (var afterObjectJson : afterArr) {
-                JsonNode afterKeyValue = afterObjectJson.get(keyName);
-                if (!afterKeyValue.isValueNode()) {
-                    throw new UnsupportedOperationException("value of key must is value node");
-                }
-
-                boolean existedAfterKeyFlag = false;
-                String keyTextValue = afterKeyValue.asText();
-
-                for (var beforeObjectJson : beforeArr) {
-                    JsonNode beforeKeyValue = beforeObjectJson.get(keyName);
-
-                    if (!beforeKeyValue.isValueNode()) {
-                        throw new UnsupportedOperationException("not contains valid key");
-                    }
-                    if (!keyTextValue.equals(beforeKeyValue.asText())) {
-                        continue;
-                    }
-
-                    existedAfterKeyFlag = true;
-                    diffScan(prefixKey + "." + keyName + "." + keyTextValue + ".", beforeObjectJson, afterObjectJson);
-                }
-
-                if (!existedAfterKeyFlag) {
-                    inserted.put(prefixKey + "." + keyName + "." + keyTextValue, afterObjectJson);
-                }
-                checkedKey.add(keyTextValue);
-            }
-
-            findDeletedObjectInArray(prefixKey, beforeArr, keyName, checkedKey);
-
+            objectNodeInArrayDiff(prefixKey, afterArr, beforeArr, afterNode);
         } else {
             throw new UnsupportedOperationException(afterArrayNode.getNodeType() + " is not supported here");
         }
+    }
 
+    private void objectNodeInArrayDiff(String prefixKey, ArrayNode afterArr, ArrayNode beforeArr, JsonNode afterNode) {
+        String keyName = findAfterObjectKey(afterNode);
+
+        if (beforeArr.isEmpty()) {
+            inserted.put(prefixKey, afterArr);
+            return;
+        }
+
+        isBeforeObjectHaveSameKey(beforeArr, keyName);
+
+        Set<String> checkedKey = new HashSet<>();
+        for (var afterObjectJson : afterArr) {
+            JsonNode afterKeyValue = afterObjectJson.get(keyName);
+            if (!afterKeyValue.isValueNode()) {
+                throw new UnsupportedOperationException("value of key must is value node");
+            }
+
+            boolean existedAfterKeyFlag = false;
+            String keyTextValue = afterKeyValue.asText();
+
+            for (var beforeObjectJson : beforeArr) {
+                JsonNode beforeKeyValue = beforeObjectJson.get(keyName);
+
+                if (!beforeKeyValue.isValueNode()) {
+                    throw new UnsupportedOperationException("not contains valid key");
+                }
+                if (!keyTextValue.equals(beforeKeyValue.asText())) {
+                    continue;
+                }
+
+                existedAfterKeyFlag = true;
+                diffScan(prefixKey + "." + keyName + "." + keyTextValue + ".", beforeObjectJson, afterObjectJson);
+            }
+
+            if (!existedAfterKeyFlag) {
+                inserted.put(prefixKey + "." + keyName + "." + keyTextValue, afterObjectJson);
+            }
+            checkedKey.add(keyTextValue);
+        }
+
+        findDeletedObjectInArray(prefixKey, beforeArr, keyName, checkedKey);
+    }
+
+    private void valueNodeInArrDiff(String prefixKey, ArrayNode afterArr, ArrayNode beforeArr) {
+        Set<Object> valueAfter = new HashSet<>();
+        Set<Object> valueBefore = new HashSet<>();
+
+        afterArr.forEach(x -> valueAfter.add(x.asText()));
+        beforeArr.forEach(x -> valueBefore.add(x.asText()));
+
+        List<Object> valueInserted = valueAfter.stream().filter(x -> !valueBefore.contains(x)).collect(Collectors.toList());
+        List<Object> valueDeleted = valueBefore.stream().filter(x -> !valueAfter.contains(x)).collect(Collectors.toList());
+
+        if (!valueInserted.isEmpty()) {
+            inserted.put(prefixKey, valueInserted);
+        }
+        if (!valueDeleted.isEmpty()) {
+            deleted.put(prefixKey, valueDeleted);
+        }
     }
 
     private void findDeletedObjectInArray(String prefixKey, ArrayNode beforeArr, String keyName, Set<String> checkedKey) {
@@ -257,18 +284,21 @@ public class DDiffJson {
     }
 
     private void valueDiff(String prefixKey, JsonNode afterValueNode, JsonNode beforeValueNode) {
-        if (afterValueNode == null && !beforeValueNode.isNull()) {
-            deleted.put(prefixKey, beforeValueNode);
-            return;
-        }
 
-        assert afterValueNode != null;
         if (afterValueNode.isNull() && beforeValueNode.isNull()) {
             // have same value
             return;
         }
+
         if (afterValueNode.isNull() && !beforeValueNode.isNull()) {
-            updated.put(prefixKey, afterValueNode);
+            if (beforeValueNode.getNodeType() == JsonNodeType.ARRAY){
+                deleted.put(prefixKey,beforeValueNode);
+            }else if(beforeValueNode.getNodeType() == JsonNodeType.OBJECT){
+                deleted.put(prefixKey,beforeValueNode);
+            }else{
+                // value is change
+                updated.put(prefixKey, afterValueNode);
+            }
             return;
         }
 
@@ -278,6 +308,7 @@ public class DDiffJson {
             if (!afterValue.equals(beforeValue)) {
                 updated.put(prefixKey, afterValueNode);
             }
+            return;
         }
 
         if (!afterValueNode.isNull() && beforeValueNode.isNull()) {

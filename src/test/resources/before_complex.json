@@ -1,0 +1,49 @@
+{
+  "project": "json_diff",
+  "publisher": {
+    "name": "garena",
+    "year": 2010
+  },
+  "outerArr": [
+    {
+      "id": "lol",
+      "info": {
+        "version": "1.0",
+        "innerArr": [
+          {
+            "id": 1,
+            "game": "lol"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tc",
+      "info": {
+        "version": "1.0",
+        "innerArr": [
+          {
+            "id": 1,
+            "game": "tc1"
+          },
+          {
+            "id": 2,
+            "game": "tc2"
+          }
+        ]
+      }
+    },
+    {
+      "id": "dota",
+      "info": {
+        "version": "1.0",
+        "innerArr": [
+          {
+            "id": 1,
+            "game": "dota"
+          }
+        ]
+      }
+    }
+  ]
+}

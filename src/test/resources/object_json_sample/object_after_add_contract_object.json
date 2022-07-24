@@ -1,0 +1,11 @@
+{
+  "employee": {
+    "employId": "12122",
+    "fullName": "John 1",
+    "age": 35,
+    "contact": {
+      "email": "john@xyz.com",
+      "phone": "9999999"
+    }
+  }
+}

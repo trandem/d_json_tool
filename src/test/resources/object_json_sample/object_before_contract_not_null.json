@@ -1,14 +1,12 @@
 {
-  "employee":
-  {
+  "employee": {
     "id": "1212",
-    "fullName":"John Miles",
+    "fullName": "John Miles",
     "age": 35,
-    "contact":
-    {
+    "contact": {
       "email": "john@xyz.com",
       "phone": "9999999"
     }
   },
-  "dem" : 16
+  "dem": 16
 }

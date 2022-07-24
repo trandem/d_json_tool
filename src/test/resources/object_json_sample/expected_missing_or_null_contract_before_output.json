@@ -1,9 +1,9 @@
 {
   "updated": {
-
+    "employee.fullName": "John 1"
   },
   "inserted": {
-    "employee.employId" : "1212",
+    "employee.employId" : "12122",
     "employee.contact" :         {
       "email": "john@xyz.com",
       "phone": "9999999"
