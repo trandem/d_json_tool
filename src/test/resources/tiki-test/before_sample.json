@@ -1,0 +1,32 @@
+{
+  "id": 1,
+  "name": "Tony Stark",
+  "age": 41,
+  "wife": "Pepper Potts",
+  "obj": {
+    "a": 1,
+    "b": 2
+  },
+  "level1": {
+    "level2": {
+      "level3": {
+        "score": 1.25
+      }
+    }
+  },
+  "simpleList": [1, 2 ,3],
+  "categories": [
+    {
+      "id": 1,
+      "name": "A"
+    },
+    {
+      "id": 2,
+      "name": "B"
+    }
+  ],
+  "emptyList": [],
+  "noChangesObj": {
+    "a": "1"
+  }
+}

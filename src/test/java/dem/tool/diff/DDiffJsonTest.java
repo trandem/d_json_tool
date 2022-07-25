@@ -271,6 +271,21 @@ class DDiffJsonTest {
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
 
+    @Test
+    void tiki_test(){
+        JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("tiki-test/before_sample.json");
+        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("tiki-test/after_sample.json");
+
+        UpdateValueBuilder diffValueBuilder = new UpdateBeforeAfterValueBuilder();
+        DeleteValueBuilder deleteValueBuilder = new DeleteBeforeKeyBuilder();
+        diffJson.setUpdateBuilder(diffValueBuilder);
+        diffJson.setDeleteBuilder(deleteValueBuilder);
+        diffJson.diffScan(beforeObject, afterObject);
+
+        String output = diffJson.toJsonFormatString();
+        System.out.println(output);
+    }
+
 
 //    @ParameterizedTest
 //    @CsvSource({"array_json_sample/array_before_3.json,array_json_sample/array_after_3.json",

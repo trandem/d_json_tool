@@ -87,8 +87,19 @@ public class DDiffJson {
         afterNode.fieldNames().forEachRemaining(afterField::add);
         beforeNode.fieldNames().forEachRemaining(beforeField::add);
 
+        Set<String> checkedField = new HashSet<>();
+
+        if (afterField.size() ==0 && beforeField.size() ==0){
+            return;
+        }else if (afterField.size() == 0){
+            for (String beforeFieldName : beforeField) {
+                deleteBuilder.build(deleted, prefixKey + beforeFieldName, null, beforeNode.get(beforeFieldName));
+            }
+            return;
+        }
+
         // DFS Here
-        List<String> checkedField = new ArrayList<>();
+
         ArrayDeque<String> stack = new ArrayDeque<>();
 
         int index = 0;
@@ -182,7 +193,7 @@ public class DDiffJson {
         } else if (afterNode.getNodeType() == JsonNodeType.OBJECT) {
             objectNodeInArrayDiff(prefixKey, afterArr, beforeArr, afterNode);
         } else {
-            throw new UnsupportedOperationException(afterArrayNode.getNodeType() + " is not supported here");
+            throw new UnsupportedOperationException(afterNode.getNodeType() + " is not supported here");
         }
     }
 
@@ -293,6 +304,12 @@ public class DDiffJson {
     }
 
     private void valueDiff(String prefixKey, JsonNode afterValueNode, JsonNode beforeValueNode) {
+
+        if (afterValueNode.isNull() && beforeValueNode ==null){
+            updateBuilder.build(updated, prefixKey, afterValueNode, null);
+            return;
+        }
+
 
         if (afterValueNode.isNull() && beforeValueNode.isNull()) {
             // have same value
