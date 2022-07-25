@@ -37,6 +37,7 @@ Chứa các **field** mang giá tri nguyên thủy, có thay đổi giá trị t
 ### inserted
 Chứa các **field** mang giá trị là **object** hoặc **array** được thêm mới vào **object** sau khi **update**
 
+Các **field** mới xuất hiện tại **object** sau khi **update**, trước đó **object** không tồn tại **field** này.
 ### deleted
 Chứa các **field** mang giá trị là **object** hoặc **array** được xóa đi trong **object** sau khi **update**
 
