@@ -1,6 +1,7 @@
 package dem.tool.diff;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import dem.tool.diff.builder.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -144,9 +145,7 @@ class DDiffJsonTest {
         JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("array_json_sample/before_have_array_plant.json");
         JsonNode afterObject = DJacksonCommon.loadJsonFromFile("array_json_sample/after_have_array_plant.json");
 
-        assertThrows(RuntimeException.class, () -> {
-            diffJson.diffScan(beforeObject, afterObject);
-        });
+        assertThrows(RuntimeException.class, () -> diffJson.diffScan(beforeObject, afterObject));
     }
 
     @Test
@@ -215,7 +214,7 @@ class DDiffJsonTest {
     }
 
     @Test
-    void complex_json_test() {
+    void complex_json() {
         JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("before_complex.json");
         JsonNode afterObject = DJacksonCommon.loadJsonFromFile("after_complex.json");
 
@@ -226,6 +225,52 @@ class DDiffJsonTest {
         String expected = DJacksonCommon.loadFromFileAsString("expected_diff_complex.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
+
+    @Test
+    void keep_deleted_key_builder_complex_json() {
+        JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("before_complex.json");
+        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("after_complex.json");
+
+        DeleteValueBuilder diffValueBuilder = new DeleteBeforeKeyBuilder();
+        diffJson.setDeleteBuilder(diffValueBuilder);
+        diffJson.diffScan(beforeObject, afterObject);
+
+        String output = diffJson.toJsonFormatString();
+
+        String expected = DJacksonCommon.loadFromFileAsString("builder/expected_delete_keep_key_builder.json");
+        DJacksonCommon.assertFullOutputEvent(expected, output);
+    }
+
+    @Test
+    void array_deleted_key_builder_complex_json() {
+        JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("before_complex.json");
+        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("after_complex.json");
+
+        DeleteValueBuilder diffValueBuilder = new DeleteArrayKeyBuilder();
+        diffJson.setDeleteBuilder(diffValueBuilder);
+        diffJson.diffScan(beforeObject, afterObject);
+
+        String output = diffJson.toJsonFormatString();
+
+        String expected = DJacksonCommon.loadFromFileAsString("builder/expected_delete_array_builder.json");
+        DJacksonCommon.assertFullOutputEvent(expected, output);
+    }
+
+    @Test
+    void before_after_updated_builder_complex_json(){
+        JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("before_complex.json");
+        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("after_complex.json");
+
+        UpdateValueBuilder diffValueBuilder = new UpdateBeforeAfterValueBuilder();
+        diffJson.setUpdateBuilder(diffValueBuilder);
+        diffJson.diffScan(beforeObject, afterObject);
+
+        String output = diffJson.toJsonFormatString();
+
+        String expected = DJacksonCommon.loadFromFileAsString("builder/expected_before_after_update_builder.json");
+        DJacksonCommon.assertFullOutputEvent(expected, output);
+    }
+
 
 //    @ParameterizedTest
 //    @CsvSource({"array_json_sample/array_before_3.json,array_json_sample/array_after_3.json",

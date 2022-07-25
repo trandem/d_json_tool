@@ -3,7 +3,9 @@ package dem.tool.diff;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import dem.tool.diff.builder.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.security.InvalidParameterException;
 import java.util.*;
@@ -19,6 +21,13 @@ public class DDiffJson {
     private final Map<String, Object> inserted;
 
     private final Set<String> registeredArrayKeys;
+
+    @Setter
+    private InsertValueBuilder insertBuilder = new InsertDefaultValueBuilder();
+    @Setter
+    private DeleteValueBuilder deleteBuilder = new DeleteBeforeObjectBuilder();
+    @Setter
+    private UpdateValueBuilder updateBuilder = new UpdateAfterValueBuilder();
 
     public DDiffJson() {
         updated = new HashMap<>();
@@ -100,7 +109,7 @@ public class DDiffJson {
 
             // inserted when after json have a new field
             if (!afterNodeFieldValue.isNull() && beforeNodeFieldValue == null) {
-                inserted.put(prefixKey + afterNodeFieldName, afterNodeFieldValue);
+                insertBuilder.build(inserted, prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue);
                 continue;
             }
 
@@ -108,7 +117,7 @@ public class DDiffJson {
 
                 if (afterNodeFieldValue.getNodeType() == JsonNodeType.OBJECT) {
                     if (beforeNodeFieldValue.isNull()) {
-                        inserted.put(prefixKey + afterNodeFieldName, afterNodeFieldValue);
+                        insertBuilder.build(inserted, prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue);
                         continue;
                     }
                     diffScan(prefixKey + afterNodeFieldName + ".", beforeNodeFieldValue, afterNodeFieldValue);
@@ -127,7 +136,7 @@ public class DDiffJson {
             if (checkedField.contains(beforeFieldName)) {
                 continue;
             }
-            deleted.put(prefixKey + beforeFieldName, beforeNode.get(beforeFieldName));
+            deleteBuilder.build(deleted, prefixKey + beforeFieldName, null, beforeNode.get(beforeFieldName));
         }
 
     }
@@ -136,7 +145,7 @@ public class DDiffJson {
 
         // must check to avoid null pointer casting beforeArrayNode
         if (!afterArrayNode.isNull() && beforeArrayNode.isNull()) {
-            inserted.put(prefixKey, afterArrayNode);
+            insertBuilder.build(inserted, prefixKey, afterArrayNode, beforeArrayNode);
             return;
         }
 
@@ -148,17 +157,15 @@ public class DDiffJson {
             return;
         }
 
-        if (afterArr.isEmpty() && !beforeArr.isEmpty()){
+        if (afterArr.isEmpty() && !beforeArr.isEmpty()) {
             JsonNode beforeNode = beforeArr.get(0);
             if (beforeNode.isValueNode()) {
-                //valueNodeInArrDiff(prefixKey, afterArr, beforeArr);
-                deleted.put(prefixKey,beforeArr);
+                deleteBuilder.build(deleted, prefixKey, null, beforeArr);
             } else if (beforeNode.getNodeType() == JsonNodeType.ARRAY) {
                 //TODO: implement array in array later
                 throw new UnsupportedOperationException(" array of array value is not supported");
             } else if (beforeNode.getNodeType() == JsonNodeType.OBJECT) {
-                //calculateDeleteObjectInArr(prefixKey, beforeArr, beforeNode);
-                deleted.put(prefixKey,beforeArr);
+                deleteBuilder.build(deleted, prefixKey, null, beforeArr);
                 return;
             } else {
                 throw new UnsupportedOperationException(afterArrayNode.getNodeType() + " is not supported here");
@@ -183,7 +190,7 @@ public class DDiffJson {
         String keyName = findAfterObjectKey(afterNode);
 
         if (beforeArr.isEmpty()) {
-            inserted.put(prefixKey, afterArr);
+            insertBuilder.build(inserted, prefixKey, afterArr, beforeArr);
             return;
         }
 
@@ -214,7 +221,7 @@ public class DDiffJson {
             }
 
             if (!existedAfterKeyFlag) {
-                inserted.put(prefixKey + "." + keyName + "." + keyTextValue, afterObjectJson);
+                insertBuilder.build(inserted, prefixKey + "." + keyName + "." + keyTextValue, afterObjectJson, null);
             }
             checkedKey.add(keyTextValue);
         }
@@ -233,10 +240,12 @@ public class DDiffJson {
         List<Object> valueDeleted = valueBefore.stream().filter(x -> !valueAfter.contains(x)).collect(Collectors.toList());
 
         if (!valueInserted.isEmpty()) {
-            inserted.put(prefixKey, valueInserted);
+            var node = DJacksonCommon.jsonTextAsJsonNode(DJacksonCommon.toStrJsonObj(valueInserted));
+            insertBuilder.build(inserted, prefixKey, node, null);
         }
         if (!valueDeleted.isEmpty()) {
-            deleted.put(prefixKey, valueDeleted);
+            var node = DJacksonCommon.jsonTextAsJsonNode(DJacksonCommon.toStrJsonObj(valueDeleted));
+            deleteBuilder.build(deleted, prefixKey, null, node);
         }
     }
 
@@ -244,7 +253,7 @@ public class DDiffJson {
         for (var jsonObject : beforeArr) {
             JsonNode keyValue = jsonObject.get(keyName);
             if (!checkedKey.contains(keyValue.asText())) {
-                deleted.put(prefixKey + "." + keyName + "." + keyValue.asText(), jsonObject);
+                deleteBuilder.build(deleted, prefixKey + "." + keyName + "." + keyValue.asText(), null, jsonObject);
             }
         }
     }
@@ -291,13 +300,13 @@ public class DDiffJson {
         }
 
         if (afterValueNode.isNull() && !beforeValueNode.isNull()) {
-            if (beforeValueNode.getNodeType() == JsonNodeType.ARRAY){
-                deleted.put(prefixKey,beforeValueNode);
-            }else if(beforeValueNode.getNodeType() == JsonNodeType.OBJECT){
-                deleted.put(prefixKey,beforeValueNode);
-            }else{
+            if (beforeValueNode.getNodeType() == JsonNodeType.ARRAY) {
+                deleteBuilder.build(deleted, prefixKey, null, beforeValueNode);
+            } else if (beforeValueNode.getNodeType() == JsonNodeType.OBJECT) {
+                deleteBuilder.build(deleted, prefixKey, null, beforeValueNode);
+            } else {
                 // value is change
-                updated.put(prefixKey, afterValueNode);
+                updateBuilder.build(updated, prefixKey, afterValueNode, beforeValueNode);
             }
             return;
         }
@@ -306,13 +315,13 @@ public class DDiffJson {
             var afterValue = afterValueNode.asText();
             var beforeValue = beforeValueNode.asText();
             if (!afterValue.equals(beforeValue)) {
-                updated.put(prefixKey, afterValueNode);
+                updateBuilder.build(updated, prefixKey, afterValueNode, beforeValueNode);
             }
             return;
         }
 
         if (!afterValueNode.isNull() && beforeValueNode.isNull()) {
-            updated.put(prefixKey, afterValueNode);
+            updateBuilder.build(updated, prefixKey, afterValueNode, beforeValueNode);
         }
     }
 }

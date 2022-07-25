@@ -1,0 +1,27 @@
+{
+  "updated": {
+    "outerArr.id.dota.info.version": "2.0",
+    "outerArr.id.tc.info.innerArr.id.1.game": "tc11"
+  },
+  "deleted": {
+    "keys": ["publisher","outerArr.id.dota.info.innerArr","outerArr.id.tc.info.innerArr.id.2","outerArr.id.lol"]
+  },
+  "inserted": {
+    "outerArr.id.lol1": {
+      "id": "lol1",
+      "info": {
+        "version": "1.0",
+        "innerArr": [
+          {
+            "id": 1,
+            "game": "lol"
+          }
+        ]
+      }
+    },
+    "outerArr.id.tc.info.innerArr.id.3": {
+      "id": 3,
+      "game": "tc3"
+    }
+  }
+}

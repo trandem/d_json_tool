@@ -117,36 +117,20 @@
 ```json
 {
   "updated": {
-    "outerArr.id.dota.info.version": "2.0",
-    "outerArr.id.tc.info.innerArr.id.1.game": "tc11"
+    "outerArr.id.dota.info.version": {
+      "before": "1.0",
+      "after": "2.0"
+    },
+    "outerArr.id.tc.info.innerArr.id.1.game": {
+      "before": "tc1",
+      "after": "tc11"
+    }
   },
   "deleted": {
-    "outerArr.id.dota.info.innerArr": [
-      {
-        "id": 1,
-        "game": "dota"
-      }
-    ],
-    "outerArr.id.tc.info.innerArr.id.2": {
-      "id": 2,
-      "game": "tc2"
-    },
-    "publisher": {
-      "name": "garena",
-      "year": 2010
-    },
-    "outerArr.id.lol": {
-      "id": "lol",
-      "info": {
-        "version": "1.0",
-        "innerArr": [
-          {
-            "id": 1,
-            "game": "lol"
-          }
-        ]
-      }
-    }
+    "outerArr.id.dota.info.innerArr": 1,
+    "outerArr.id.tc.info.innerArr.id.2": 1,
+    "publisher": 1,
+    "outerArr.id.lol": 1
   },
   "inserted": {
     "outerArr.id.lol1": {
