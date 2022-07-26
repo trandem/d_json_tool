@@ -22,6 +22,8 @@ public class DDiffJson {
 
     private final Set<String> registeredArrayKeys;
 
+    private final Map<String, String> keyRegisteredByPath;
+
     @Setter
     private InsertValueBuilder insertBuilder = new InsertDefaultValueBuilder();
     @Setter
@@ -33,7 +35,8 @@ public class DDiffJson {
         updated = new HashMap<>();
         deleted = new HashMap<>();
         inserted = new HashMap<>();
-        registeredArrayKeys = new HashSet<>(List.of("id", "categoryId"));
+        registeredArrayKeys = new HashSet<>(List.of("categoryId"));
+        keyRegisteredByPath = new HashMap<>();
     }
 
     public String toJsonFormatString() {
@@ -62,6 +65,10 @@ public class DDiffJson {
         registeredArrayKeys.addAll(Set.of(keys));
     }
 
+    public void registerObjectKeyInArrayByPath(String path, String key) {
+        keyRegisteredByPath.put(path, key);
+    }
+
     /**
      * Calculate :
      * <p>
@@ -77,10 +84,11 @@ public class DDiffJson {
      * @param afterNode  json of object after running logic
      */
     public void diffScan(JsonNode beforeNode, JsonNode afterNode) {
-        diffScan("", beforeNode, afterNode);
+
+        diffScan("", beforeNode, afterNode, "");
     }
 
-    private void diffScan(String prefixKey, JsonNode beforeNode, JsonNode afterNode) {
+    private void diffScan(String prefixKey, JsonNode beforeNode, JsonNode afterNode, String path) {
         ArrayList<String> afterField = new ArrayList<>();
         ArrayList<String> beforeField = new ArrayList<>();
 
@@ -89,9 +97,9 @@ public class DDiffJson {
 
         Set<String> checkedField = new HashSet<>();
 
-        if (afterField.size() ==0 && beforeField.size() ==0){
+        if (afterField.size() == 0 && beforeField.size() == 0) {
             return;
-        }else if (afterField.size() == 0){
+        } else if (afterField.size() == 0) {
             for (String beforeFieldName : beforeField) {
                 deleteBuilder.build(deleted, prefixKey + beforeFieldName, null, beforeNode.get(beforeFieldName));
             }
@@ -120,7 +128,7 @@ public class DDiffJson {
 
             // inserted when after json have a new field
             if (!afterNodeFieldValue.isNull() && beforeNodeFieldValue == null) {
-                insertBuilder.build(inserted, prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue);
+                insertBuilder.build(inserted, prefixKey + afterNodeFieldName, afterNodeFieldValue, null);
                 continue;
             }
 
@@ -131,10 +139,10 @@ public class DDiffJson {
                         insertBuilder.build(inserted, prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue);
                         continue;
                     }
-                    diffScan(prefixKey + afterNodeFieldName + ".", beforeNodeFieldValue, afterNodeFieldValue);
+                    diffScan(prefixKey + afterNodeFieldName + ".", beforeNodeFieldValue, afterNodeFieldValue, path + afterNodeFieldName + ".");
 
                 } else if (afterNodeFieldValue.getNodeType() == JsonNodeType.ARRAY) {
-                    arrDiff(prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue);
+                    arrDiff(prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue, path + afterNodeFieldName);
                 } else {
                     throw new UnsupportedOperationException(afterNodeFieldValue.getNodeType() + " is not supported here");
                 }
@@ -152,14 +160,13 @@ public class DDiffJson {
 
     }
 
-    private void arrDiff(String prefixKey, JsonNode afterArrayNode, JsonNode beforeArrayNode) {
+    private void arrDiff(String prefixKey, JsonNode afterArrayNode, JsonNode beforeArrayNode, String path) {
 
         // must check to avoid null pointer casting beforeArrayNode
         if (!afterArrayNode.isNull() && beforeArrayNode.isNull()) {
             insertBuilder.build(inserted, prefixKey, afterArrayNode, beforeArrayNode);
             return;
         }
-
         ArrayNode afterArr = (ArrayNode) afterArrayNode;
         ArrayNode beforeArr = (ArrayNode) beforeArrayNode;
 
@@ -191,14 +198,14 @@ public class DDiffJson {
             //TODO: implement array in array later
             throw new UnsupportedOperationException(" array of array value is not supported");
         } else if (afterNode.getNodeType() == JsonNodeType.OBJECT) {
-            objectNodeInArrayDiff(prefixKey, afterArr, beforeArr, afterNode);
+            objectNodeInArrayDiff(prefixKey, afterArr, beforeArr, afterNode, path);
         } else {
             throw new UnsupportedOperationException(afterNode.getNodeType() + " is not supported here");
         }
     }
 
-    private void objectNodeInArrayDiff(String prefixKey, ArrayNode afterArr, ArrayNode beforeArr, JsonNode afterNode) {
-        String keyName = findAfterObjectKey(afterNode);
+    private void objectNodeInArrayDiff(String prefixKey, ArrayNode afterArr, ArrayNode beforeArr, JsonNode afterNode, String path) {
+        String keyName = findAfterObjectKey(afterNode, path);
 
         if (beforeArr.isEmpty()) {
             insertBuilder.build(inserted, prefixKey, afterArr, beforeArr);
@@ -228,7 +235,7 @@ public class DDiffJson {
                 }
 
                 existedAfterKeyFlag = true;
-                diffScan(prefixKey + "." + keyName + "." + keyTextValue + ".", beforeObjectJson, afterObjectJson);
+                diffScan(prefixKey + "." + keyName + "." + keyTextValue + ".", beforeObjectJson, afterObjectJson, path + ".");
             }
 
             if (!existedAfterKeyFlag) {
@@ -269,8 +276,27 @@ public class DDiffJson {
         }
     }
 
-    private String findAfterObjectKey(JsonNode afterNode) {
-        String objectKey = null;
+    private String findByMapPath(JsonNode afterNode, String path) {
+        String objectKey = keyRegisteredByPath.get(path);
+        if (objectKey == null) {
+            return null;
+        }
+        var fieldNames = afterNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            if (objectKey.equals(fieldName)) {
+                return objectKey;
+
+            }
+        }
+        return null;
+    }
+
+    private String findAfterObjectKey(JsonNode afterNode, String path) {
+        String objectKey = findByMapPath(afterNode, path);
+        if (objectKey != null) {
+            return objectKey;
+        }
         var fieldNames = afterNode.fieldNames();
         while (fieldNames.hasNext()) {
             String fieldName = fieldNames.next();
@@ -305,7 +331,7 @@ public class DDiffJson {
 
     private void valueDiff(String prefixKey, JsonNode afterValueNode, JsonNode beforeValueNode) {
 
-        if (afterValueNode.isNull() && beforeValueNode ==null){
+        if (afterValueNode.isNull() && beforeValueNode == null) {
             updateBuilder.build(updated, prefixKey, afterValueNode, null);
             return;
         }

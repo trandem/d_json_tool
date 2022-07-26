@@ -153,7 +153,7 @@ class DDiffJsonTest {
         JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("array_json_sample/before_have_array_plant.json");
         JsonNode afterObject = DJacksonCommon.loadJsonFromFile("array_json_sample/after_have_array_plant.json");
 
-        diffJson.registerObjectKeyInArray("plantId");
+        diffJson.registerObjectKeyInArrayByPath("plants","plantId");
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
@@ -167,7 +167,7 @@ class DDiffJsonTest {
         JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("array_json_sample/before_array_plant_null.json");
         JsonNode afterObject = DJacksonCommon.loadJsonFromFile("array_json_sample/after_have_array_plant.json");
 
-        diffJson.registerObjectKeyInArray("plantId");
+        diffJson.registerObjectKeyInArrayByPath("plants","plantId");
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
@@ -217,6 +217,8 @@ class DDiffJsonTest {
     void complex_json() {
         JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("before_complex.json");
         JsonNode afterObject = DJacksonCommon.loadJsonFromFile("after_complex.json");
+        diffJson.registerObjectKeyInArrayByPath("outerArr","id");
+        diffJson.registerObjectKeyInArrayByPath("outerArr.info.innerArr","id");
 
         diffJson.diffScan(beforeObject, afterObject);
 
@@ -233,6 +235,8 @@ class DDiffJsonTest {
 
         DeleteValueBuilder diffValueBuilder = new DeleteBeforeKeyBuilder();
         diffJson.setDeleteBuilder(diffValueBuilder);
+        diffJson.registerObjectKeyInArrayByPath("outerArr","id");
+        diffJson.registerObjectKeyInArrayByPath("outerArr.info.innerArr","id");
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
@@ -248,6 +252,8 @@ class DDiffJsonTest {
 
         DeleteValueBuilder diffValueBuilder = new DeleteArrayKeyBuilder();
         diffJson.setDeleteBuilder(diffValueBuilder);
+        diffJson.registerObjectKeyInArrayByPath("outerArr","id");
+        diffJson.registerObjectKeyInArrayByPath("outerArr.info.innerArr","id");
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
@@ -263,27 +269,15 @@ class DDiffJsonTest {
 
         UpdateValueBuilder diffValueBuilder = new UpdateBeforeAfterValueBuilder();
         diffJson.setUpdateBuilder(diffValueBuilder);
+        diffJson.registerObjectKeyInArrayByPath("outerArr","id");
+        diffJson.registerObjectKeyInArrayByPath("outerArr.info.innerArr","id");
+
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
 
         String expected = DJacksonCommon.loadFromFileAsString("builder/expected_before_after_update_builder.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
-    }
-
-    @Test
-    void tiki_test(){
-        JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("tiki-test/before_sample.json");
-        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("tiki-test/after_sample.json");
-
-        UpdateValueBuilder diffValueBuilder = new UpdateBeforeAfterValueBuilder();
-        DeleteValueBuilder deleteValueBuilder = new DeleteBeforeKeyBuilder();
-        diffJson.setUpdateBuilder(diffValueBuilder);
-        diffJson.setDeleteBuilder(deleteValueBuilder);
-        diffJson.diffScan(beforeObject, afterObject);
-
-        String output = diffJson.toJsonFormatString();
-        System.out.println(output);
     }
 
 

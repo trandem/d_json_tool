@@ -30,8 +30,10 @@
             "id": 2,
             "game": "tc2"
           }
-        ]
-      }
+        ],
+        "innerArr1": []
+      },
+      "innerArr1": []
     },
     {
       "id": "dota",
