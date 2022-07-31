@@ -1,4 +1,11 @@
 package dem.tool.diff.builder;
 
-public interface DeleteValueBuilder extends DiffValueBuilder {
+import dem.tool.diff.DJsonContext;
+
+import java.util.Map;
+
+public interface DeleteValueBuilder {
+
+    void build(Map<String, Object> dataHub, DJsonContext context);
+
 }

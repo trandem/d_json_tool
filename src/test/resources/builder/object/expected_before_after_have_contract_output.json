@@ -1,0 +1,16 @@
+{
+  "updated": {
+    "employee": {
+      "fullName": "John 1"
+    }
+  },
+  "inserted": {
+    "employee": {
+      "employId": "12122"
+    }
+  },
+  "deleted": {
+    "employee.id": 1,
+    "dem": 1
+  }
+}

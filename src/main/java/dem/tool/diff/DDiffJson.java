@@ -20,49 +20,24 @@ public class DDiffJson {
     @Getter
     private final Map<String, Object> inserted;
 
-    private final Set<String> registeredArrayKeys;
-
     private final Map<String, String> keyRegisteredByPath;
 
     @Setter
-    private InsertValueBuilder insertBuilder = new InsertDefaultValueBuilder();
+    private InsertValueBuilder insertBuilder = new InsertFlattenKeyValueBuilder();
     @Setter
-    private DeleteValueBuilder deleteBuilder = new DeleteBeforeObjectBuilder();
+    private DeleteValueBuilder deleteBuilder = new DeleteFlattenKeyBuilder();
     @Setter
-    private UpdateValueBuilder updateBuilder = new UpdateAfterValueBuilder();
+    private UpdateValueBuilder updateBuilder = new UpdateFlattenKeyValueBuilder();
 
     public DDiffJson() {
         updated = new HashMap<>();
         deleted = new HashMap<>();
         inserted = new HashMap<>();
-        registeredArrayKeys = new HashSet<>(List.of("categoryId"));
         keyRegisteredByPath = new HashMap<>();
     }
 
     public String toJsonFormatString() {
         return DJacksonCommon.toStrJsonObj(this);
-    }
-
-    /**
-     * Register new keys
-     * <p>
-     * Example
-     * <p>
-     * {
-     * "employee": [
-     * {
-     * "employeeId": "1",
-     * "firstName": "Tom",
-     * }
-     * ]
-     * }
-     * <p>
-     * keys = employeeId
-     *
-     * @param keys need to be scanned in json array object
-     */
-    public void registerObjectKeyInArray(String... keys) {
-        registeredArrayKeys.addAll(Set.of(keys));
     }
 
     public void registerObjectKeyInArrayByPath(String path, String key) {
@@ -84,11 +59,14 @@ public class DDiffJson {
      * @param afterNode  json of object after running logic
      */
     public void diffScan(JsonNode beforeNode, JsonNode afterNode) {
-
-        diffScan("", beforeNode, afterNode, "");
+        DJsonContext context = new DJsonContext();
+        context.setRegisterKeyMap(keyRegisteredByPath);
+        insertBuilder.setInitialJsonNode(afterNode);
+        updateBuilder.setInitialJsonNode(afterNode);
+        diffScan(context, beforeNode, afterNode);
     }
 
-    private void diffScan(String prefixKey, JsonNode beforeNode, JsonNode afterNode, String path) {
+    private void diffScan(DJsonContext contextLoop, JsonNode beforeNode, JsonNode afterNode) {
         ArrayList<String> afterField = new ArrayList<>();
         ArrayList<String> beforeField = new ArrayList<>();
 
@@ -101,7 +79,10 @@ public class DDiffJson {
             return;
         } else if (afterField.size() == 0) {
             for (String beforeFieldName : beforeField) {
-                deleteBuilder.build(deleted, prefixKey + beforeFieldName, null, beforeNode.get(beforeFieldName));
+                var context = contextLoop.duplicate();
+                context.addPath(beforeFieldName);
+                context.setValue(beforeNode.get(beforeFieldName));
+                deleteBuilder.build(deleted, context);
             }
             return;
         }
@@ -128,7 +109,10 @@ public class DDiffJson {
 
             // inserted when after json have a new field
             if (!afterNodeFieldValue.isNull() && beforeNodeFieldValue == null) {
-                insertBuilder.build(inserted, prefixKey + afterNodeFieldName, afterNodeFieldValue, null);
+                var contextInsert = contextLoop.duplicate();
+                contextInsert.addPath(afterNodeFieldName);
+                contextInsert.setValue(afterNodeFieldValue);
+                insertBuilder.build(inserted, contextInsert);
                 continue;
             }
 
@@ -136,18 +120,29 @@ public class DDiffJson {
 
                 if (afterNodeFieldValue.getNodeType() == JsonNodeType.OBJECT) {
                     if (beforeNodeFieldValue.isNull()) {
-                        insertBuilder.build(inserted, prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue);
+                        var contextInsert = contextLoop.duplicate();
+                        contextInsert.addPath(afterNodeFieldName);
+                        contextInsert.setValue(afterNodeFieldValue);
+                        insertBuilder.build(inserted, contextInsert);
                         continue;
                     }
-                    diffScan(prefixKey + afterNodeFieldName + ".", beforeNodeFieldValue, afterNodeFieldValue, path + afterNodeFieldName + ".");
+                    var contextDiff = contextLoop.duplicate();
+                    contextDiff.addPath(afterNodeFieldName);
+                    diffScan(contextDiff, beforeNodeFieldValue, afterNodeFieldValue);
 
                 } else if (afterNodeFieldValue.getNodeType() == JsonNodeType.ARRAY) {
-                    arrDiff(prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue, path + afterNodeFieldName);
+                    var contextDiff = contextLoop.duplicate();
+                    contextDiff.addPath(afterNodeFieldName);
+
+                    arrDiff(contextDiff, afterNodeFieldValue, beforeNodeFieldValue);
                 } else {
                     throw new UnsupportedOperationException(afterNodeFieldValue.getNodeType() + " is not supported here");
                 }
             } else {
-                valueDiff(prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue);
+                var contextDiff = contextLoop.duplicate();
+                contextDiff.addPath(afterNodeFieldName);
+
+                valueDiff(contextDiff, afterNodeFieldValue, beforeNodeFieldValue);
             }
         }
 
@@ -155,16 +150,21 @@ public class DDiffJson {
             if (checkedField.contains(beforeFieldName)) {
                 continue;
             }
-            deleteBuilder.build(deleted, prefixKey + beforeFieldName, null, beforeNode.get(beforeFieldName));
+            var contextD = contextLoop.duplicate();
+            contextD.addPath(beforeFieldName);
+            contextD.setValue(beforeNode.get(beforeFieldName));
+            deleteBuilder.build(deleted, contextD);
         }
 
     }
 
-    private void arrDiff(String prefixKey, JsonNode afterArrayNode, JsonNode beforeArrayNode, String path) {
+    private void arrDiff(DJsonContext contextDiff, JsonNode afterArrayNode, JsonNode beforeArrayNode) {
 
         // must check to avoid null pointer casting beforeArrayNode
         if (!afterArrayNode.isNull() && beforeArrayNode.isNull()) {
-            insertBuilder.build(inserted, prefixKey, afterArrayNode, beforeArrayNode);
+            var contextI = contextDiff.duplicate();
+            contextI.setValue(afterArrayNode);
+            insertBuilder.build(inserted, contextI);
             return;
         }
         ArrayNode afterArr = (ArrayNode) afterArrayNode;
@@ -178,12 +178,16 @@ public class DDiffJson {
         if (afterArr.isEmpty() && !beforeArr.isEmpty()) {
             JsonNode beforeNode = beforeArr.get(0);
             if (beforeNode.isValueNode()) {
-                deleteBuilder.build(deleted, prefixKey, null, beforeArr);
+                var contextD = contextDiff.duplicate();
+                contextD.setValue(beforeArr);
+                deleteBuilder.build(deleted, contextD);
             } else if (beforeNode.getNodeType() == JsonNodeType.ARRAY) {
                 //TODO: implement array in array later
                 throw new UnsupportedOperationException(" array of array value is not supported");
             } else if (beforeNode.getNodeType() == JsonNodeType.OBJECT) {
-                deleteBuilder.build(deleted, prefixKey, null, beforeArr);
+                var contextD = contextDiff.duplicate();
+                contextD.setValue(beforeArr);
+                deleteBuilder.build(deleted, contextD);
                 return;
             } else {
                 throw new UnsupportedOperationException(afterArrayNode.getNodeType() + " is not supported here");
@@ -193,22 +197,24 @@ public class DDiffJson {
 
         JsonNode afterNode = afterArr.get(0);
         if (afterNode.isValueNode()) {
-            valueNodeInArrDiff(prefixKey, afterArr, beforeArr);
+            valueNodeInArrDiff(contextDiff.duplicate(), afterArr, beforeArr);
         } else if (afterNode.getNodeType() == JsonNodeType.ARRAY) {
             //TODO: implement array in array later
             throw new UnsupportedOperationException(" array of array value is not supported");
         } else if (afterNode.getNodeType() == JsonNodeType.OBJECT) {
-            objectNodeInArrayDiff(prefixKey, afterArr, beforeArr, afterNode, path);
+            objectNodeInArrayDiff(contextDiff.duplicate(), afterArr, beforeArr, afterNode);
         } else {
             throw new UnsupportedOperationException(afterNode.getNodeType() + " is not supported here");
         }
     }
 
-    private void objectNodeInArrayDiff(String prefixKey, ArrayNode afterArr, ArrayNode beforeArr, JsonNode afterNode, String path) {
-        String keyName = findAfterObjectKey(afterNode, path);
+    private void objectNodeInArrayDiff(DJsonContext contextDiff, ArrayNode afterArr, ArrayNode beforeArr, JsonNode afterNode) {
+        String keyName = findByMapPath(afterNode, contextDiff.getPaths());
 
         if (beforeArr.isEmpty()) {
-            insertBuilder.build(inserted, prefixKey, afterArr, beforeArr);
+            var contextI = contextDiff.duplicate();
+            contextI.setValue(afterArr);
+            insertBuilder.build(inserted, contextI);
             return;
         }
 
@@ -235,48 +241,65 @@ public class DDiffJson {
                 }
 
                 existedAfterKeyFlag = true;
-                diffScan(prefixKey + "." + keyName + "." + keyTextValue + ".", beforeObjectJson, afterObjectJson, path + ".");
+                var contextScan = contextDiff.duplicate();
+                var keyPath = String.join(".", contextScan.getPaths());
+                contextScan.addKey(keyPath, keyTextValue);
+                diffScan(contextScan, beforeObjectJson, afterObjectJson);
             }
 
             if (!existedAfterKeyFlag) {
-                insertBuilder.build(inserted, prefixKey + "." + keyName + "." + keyTextValue, afterObjectJson, null);
+                var contextI = contextDiff.duplicate();
+                contextI.setList(true);
+                contextI.setValue(afterObjectJson);
+                var keyPath = String.join(".", contextI.getPaths());
+                contextI.addKey(keyPath, keyTextValue);
+                insertBuilder.build(inserted,contextI);
             }
             checkedKey.add(keyTextValue);
         }
 
-        findDeletedObjectInArray(prefixKey, beforeArr, keyName, checkedKey);
+        findDeletedObjectInArray(contextDiff.duplicate(), beforeArr, keyName, checkedKey);
     }
 
-    private void valueNodeInArrDiff(String prefixKey, ArrayNode afterArr, ArrayNode beforeArr) {
+    private void valueNodeInArrDiff(DJsonContext contextDiff, ArrayNode afterArr, ArrayNode beforeArr) {
         Set<Object> valueAfter = new HashSet<>();
         Set<Object> valueBefore = new HashSet<>();
 
-        afterArr.forEach(x -> valueAfter.add(x.asText()));
-        beforeArr.forEach(x -> valueBefore.add(x.asText()));
+        afterArr.forEach(valueAfter::add);
+        beforeArr.forEach(valueBefore::add);
 
         List<Object> valueInserted = valueAfter.stream().filter(x -> !valueBefore.contains(x)).collect(Collectors.toList());
         List<Object> valueDeleted = valueBefore.stream().filter(x -> !valueAfter.contains(x)).collect(Collectors.toList());
 
         if (!valueInserted.isEmpty()) {
             var node = DJacksonCommon.jsonTextAsJsonNode(DJacksonCommon.toStrJsonObj(valueInserted));
-            insertBuilder.build(inserted, prefixKey, node, null);
+            var contextI = contextDiff.duplicate();
+            contextI.setValue(node);
+            insertBuilder.build(inserted, contextI);
         }
         if (!valueDeleted.isEmpty()) {
             var node = DJacksonCommon.jsonTextAsJsonNode(DJacksonCommon.toStrJsonObj(valueDeleted));
-            deleteBuilder.build(deleted, prefixKey, null, node);
+            var contextD = contextDiff.duplicate();
+            contextD.setValue(node);
+            deleteBuilder.build(deleted, contextD);
         }
     }
 
-    private void findDeletedObjectInArray(String prefixKey, ArrayNode beforeArr, String keyName, Set<String> checkedKey) {
+    private void findDeletedObjectInArray(DJsonContext context, ArrayNode beforeArr, String keyName, Set<String> checkedKey) {
         for (var jsonObject : beforeArr) {
             JsonNode keyValue = jsonObject.get(keyName);
             if (!checkedKey.contains(keyValue.asText())) {
-                deleteBuilder.build(deleted, prefixKey + "." + keyName + "." + keyValue.asText(), null, jsonObject);
+                var contextD = context.duplicate();
+                contextD.setValue(jsonObject);
+                var keyPath = String.join(".", contextD.getPaths());
+                contextD.addKey(keyPath, keyValue.asText());
+                deleteBuilder.build(deleted,contextD);
             }
         }
     }
 
-    private String findByMapPath(JsonNode afterNode, String path) {
+    private String findByMapPath(JsonNode afterNode, List<String> paths) {
+        String path = String.join(".", paths);
         String objectKey = keyRegisteredByPath.get(path);
         if (objectKey == null) {
             return null;
@@ -289,27 +312,7 @@ public class DDiffJson {
 
             }
         }
-        return null;
-    }
-
-    private String findAfterObjectKey(JsonNode afterNode, String path) {
-        String objectKey = findByMapPath(afterNode, path);
-        if (objectKey != null) {
-            return objectKey;
-        }
-        var fieldNames = afterNode.fieldNames();
-        while (fieldNames.hasNext()) {
-            String fieldName = fieldNames.next();
-            if (registeredArrayKeys.contains(fieldName)) {
-                objectKey = fieldName;
-                break;
-            }
-        }
-
-        if (objectKey == null) {
-            throw new InvalidParameterException("not contains valid key " + registeredArrayKeys.toString());
-        }
-        return objectKey;
+        throw new InvalidParameterException("not contains valid key " + keyRegisteredByPath);
     }
 
     private void isBeforeObjectHaveSameKey(ArrayNode beforeArr, String objectKey) {
@@ -325,17 +328,16 @@ public class DDiffJson {
         }
 
         if (!isNodeContainsValidKey) {
-            throw new UnsupportedOperationException("not contains valid key");
+            throw new UnsupportedOperationException("not contains valid key "+ objectKey);
         }
     }
 
-    private void valueDiff(String prefixKey, JsonNode afterValueNode, JsonNode beforeValueNode) {
+    private void valueDiff(DJsonContext contextDiff, JsonNode afterValueNode, JsonNode beforeValueNode) {
 
         if (afterValueNode.isNull() && beforeValueNode == null) {
-            updateBuilder.build(updated, prefixKey, afterValueNode, null);
+            // no diff
             return;
         }
-
 
         if (afterValueNode.isNull() && beforeValueNode.isNull()) {
             // have same value
@@ -344,12 +346,18 @@ public class DDiffJson {
 
         if (afterValueNode.isNull() && !beforeValueNode.isNull()) {
             if (beforeValueNode.getNodeType() == JsonNodeType.ARRAY) {
-                deleteBuilder.build(deleted, prefixKey, null, beforeValueNode);
+                var contextD = contextDiff.duplicate();
+                contextD.setValue(beforeValueNode);
+                deleteBuilder.build(deleted, contextD);
             } else if (beforeValueNode.getNodeType() == JsonNodeType.OBJECT) {
-                deleteBuilder.build(deleted, prefixKey, null, beforeValueNode);
+                var contextD = contextDiff.duplicate();
+                contextD.setValue(beforeValueNode);
+                deleteBuilder.build(deleted, contextD);
             } else {
                 // value is change
-                updateBuilder.build(updated, prefixKey, afterValueNode, beforeValueNode);
+                var contextUpdate = contextDiff.duplicate();
+                contextUpdate.setValue(afterValueNode);
+                updateBuilder.build(updated, contextUpdate);
             }
             return;
         }
@@ -358,13 +366,17 @@ public class DDiffJson {
             var afterValue = afterValueNode.asText();
             var beforeValue = beforeValueNode.asText();
             if (!afterValue.equals(beforeValue)) {
-                updateBuilder.build(updated, prefixKey, afterValueNode, beforeValueNode);
+                var contextUpdate = contextDiff.duplicate();
+                contextUpdate.setValue(afterValueNode);
+                updateBuilder.build(updated, contextUpdate);
             }
             return;
         }
 
         if (!afterValueNode.isNull() && beforeValueNode.isNull()) {
-            updateBuilder.build(updated, prefixKey, afterValueNode, beforeValueNode);
+            var contextUpdate = contextDiff.duplicate();
+            contextUpdate.setValue(afterValueNode);
+            updateBuilder.build(updated, contextUpdate);
         }
     }
 }

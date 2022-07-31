@@ -9,9 +9,6 @@
     }
   },
   "deleted": {
-    "plants.plantId.2":{
-      "plantId": "2",
-      "name": "plant2"
-    }
+    "plants.plantId.2":1
   }
 }

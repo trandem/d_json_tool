@@ -1,0 +1,21 @@
+{
+  "updated": {
+    "plants": [
+      {
+        "plantId": "1",
+        "name": "plant11"
+      }
+    ]
+  },
+  "inserted": {
+    "plants": [
+      {
+        "plantId": "4",
+        "name": "plant4"
+      }
+    ]
+  },
+  "deleted": {
+    "plants.plantId.2": 1
+  }
+}

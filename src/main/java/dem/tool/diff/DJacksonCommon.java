@@ -1,5 +1,6 @@
 package dem.tool.diff;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONException;
@@ -8,6 +9,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -67,6 +69,10 @@ public class DJacksonCommon {
 
     public static <T> T buildToObj(Object payload, Class<T> clazz) {
         return COMMON_OBJECT_MAPPER.convertValue(payload, clazz);
+    }
+
+    public static Map<String, Object> jsonNodeToMap(JsonNode jsonNode){
+        return COMMON_OBJECT_MAPPER.convertValue(jsonNode, new TypeReference<Map<String, Object>>(){});
     }
 
     public static <T> T buildToObj(String jsonData, Class<T> clazz) {
