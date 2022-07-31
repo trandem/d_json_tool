@@ -1,4 +1,9 @@
 package dem.tool.diff.builder;
 
-public interface InsertValueBuilder extends DiffValueBuilder{
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.util.Map;
+
+public interface InsertValueBuilder{
+    void build(Map<String ,Object> dataHub, String key, JsonNode afterNode,String path);
 }

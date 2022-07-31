@@ -128,7 +128,7 @@ public class DDiffJson {
 
             // inserted when after json have a new field
             if (!afterNodeFieldValue.isNull() && beforeNodeFieldValue == null) {
-                insertBuilder.build(inserted, prefixKey + afterNodeFieldName, afterNodeFieldValue, null);
+                insertBuilder.build(inserted, prefixKey + afterNodeFieldName, afterNodeFieldValue, path);
                 continue;
             }
 
@@ -136,7 +136,7 @@ public class DDiffJson {
 
                 if (afterNodeFieldValue.getNodeType() == JsonNodeType.OBJECT) {
                     if (beforeNodeFieldValue.isNull()) {
-                        insertBuilder.build(inserted, prefixKey + afterNodeFieldName, afterNodeFieldValue, beforeNodeFieldValue);
+                        insertBuilder.build(inserted, prefixKey + afterNodeFieldName, afterNodeFieldValue,path);
                         continue;
                     }
                     diffScan(prefixKey + afterNodeFieldName + ".", beforeNodeFieldValue, afterNodeFieldValue, path + afterNodeFieldName + ".");
@@ -164,7 +164,7 @@ public class DDiffJson {
 
         // must check to avoid null pointer casting beforeArrayNode
         if (!afterArrayNode.isNull() && beforeArrayNode.isNull()) {
-            insertBuilder.build(inserted, prefixKey, afterArrayNode, beforeArrayNode);
+            insertBuilder.build(inserted, prefixKey, afterArrayNode, path);
             return;
         }
         ArrayNode afterArr = (ArrayNode) afterArrayNode;
@@ -208,7 +208,7 @@ public class DDiffJson {
         String keyName = findAfterObjectKey(afterNode, path);
 
         if (beforeArr.isEmpty()) {
-            insertBuilder.build(inserted, prefixKey, afterArr, beforeArr);
+            insertBuilder.build(inserted, prefixKey, afterArr, path);
             return;
         }
 
