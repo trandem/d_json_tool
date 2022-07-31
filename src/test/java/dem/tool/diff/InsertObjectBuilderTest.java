@@ -1,9 +1,10 @@
 package dem.tool.diff;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import dem.tool.diff.builder.DeleteBeforeKeyBuilder;
+import dem.tool.diff.builder.DeleteFlattenKeyBuilder;
 import dem.tool.diff.builder.DeleteValueBuilder;
 import dem.tool.diff.builder.InsertObjectBuilder;
+import dem.tool.diff.builder.UpdateObjectBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,11 @@ class InsertObjectBuilderTest {
     void setUp() {
         diffJson = new DDiffJson();
         var insertBuilder = new InsertObjectBuilder();
+        var updateBuilder = new UpdateObjectBuilder();
+
         diffJson.setInsertBuilder(insertBuilder);
+        diffJson.setUpdateBuilder(updateBuilder);
+
     }
 
     @ParameterizedTest
@@ -216,7 +221,6 @@ class InsertObjectBuilderTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        System.out.println(output);
 
         String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_diff_complex.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
@@ -233,7 +237,6 @@ class InsertObjectBuilderTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        System.out.println(output);
 
         String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_diff_complex_1.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
@@ -242,19 +245,16 @@ class InsertObjectBuilderTest {
     @Test
     void keep_deleted_key_builder_complex_json() {
         JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("before_complex.json");
-        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("after_complex.json");
+        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("after_complex_2.json");
 
-        DeleteValueBuilder diffValueBuilder = new DeleteBeforeKeyBuilder();
+        DeleteValueBuilder diffValueBuilder = new DeleteFlattenKeyBuilder();
         diffJson.setDeleteBuilder(diffValueBuilder);
         diffJson.registerObjectKeyInArrayByPath("outerArr","id");
         diffJson.registerObjectKeyInArrayByPath("outerArr.info.innerArr","id");
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-
         String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_delete_keep_key_builder.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
-
-
 }

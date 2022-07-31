@@ -20,22 +20,19 @@ public class DDiffJson {
     @Getter
     private final Map<String, Object> inserted;
 
-    private final Set<String> registeredArrayKeys;
-
     private final Map<String, String> keyRegisteredByPath;
 
     @Setter
-    private InsertValueBuilder insertBuilder = new InsertPrefixKeyBuilder();
+    private InsertValueBuilder insertBuilder = new InsertFlattenKeyValueBuilder();
     @Setter
-    private DeleteValueBuilder deleteBuilder = new DeleteBeforeObjectBuilder();
+    private DeleteValueBuilder deleteBuilder = new DeleteFlattenKeyBuilder();
     @Setter
-    private UpdateValueBuilder updateBuilder = new UpdateAfterValueBuilder();
+    private UpdateValueBuilder updateBuilder = new UpdateFlattenKeyValueBuilder();
 
     public DDiffJson() {
         updated = new HashMap<>();
         deleted = new HashMap<>();
         inserted = new HashMap<>();
-        registeredArrayKeys = new HashSet<>(List.of("categoryId"));
         keyRegisteredByPath = new HashMap<>();
     }
 
@@ -65,6 +62,7 @@ public class DDiffJson {
         DJsonContext context = new DJsonContext();
         context.setRegisterKeyMap(keyRegisteredByPath);
         insertBuilder.setInitialJsonNode(afterNode);
+        updateBuilder.setInitialJsonNode(afterNode);
         diffScan(context, beforeNode, afterNode);
     }
 
@@ -267,8 +265,8 @@ public class DDiffJson {
         Set<Object> valueAfter = new HashSet<>();
         Set<Object> valueBefore = new HashSet<>();
 
-        afterArr.forEach(x -> valueAfter.add(x.asText()));
-        beforeArr.forEach(x -> valueBefore.add(x.asText()));
+        afterArr.forEach(valueAfter::add);
+        beforeArr.forEach(valueBefore::add);
 
         List<Object> valueInserted = valueAfter.stream().filter(x -> !valueBefore.contains(x)).collect(Collectors.toList());
         List<Object> valueDeleted = valueBefore.stream().filter(x -> !valueAfter.contains(x)).collect(Collectors.toList());
@@ -340,7 +338,6 @@ public class DDiffJson {
             // no diff
             return;
         }
-
 
         if (afterValueNode.isNull() && beforeValueNode.isNull()) {
             // have same value

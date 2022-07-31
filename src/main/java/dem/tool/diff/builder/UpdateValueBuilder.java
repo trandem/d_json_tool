@@ -5,10 +5,9 @@ import dem.tool.diff.DJsonContext;
 
 import java.util.Map;
 
-public interface UpdateValueBuilder{
+public interface UpdateValueBuilder {
 
-    Map<String ,Object> getDataHub();
-    void build(Map<String ,Object> dataHub,DJsonContext context);
-    void build(Map<String ,Object> dataHub, String key, JsonNode afterNode, JsonNode beforeNode);
+    void build(Map<String, Object> dataHub, DJsonContext context);
 
+    void setInitialJsonNode(JsonNode jsonNode);
 }

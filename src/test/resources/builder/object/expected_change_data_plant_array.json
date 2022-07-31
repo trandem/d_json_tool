@@ -1,6 +1,11 @@
 {
   "updated": {
-    "plants.plantId.1.name": "plant11"
+    "plants": [
+      {
+        "plantId": "1",
+        "name": "plant11"
+      }
+    ]
   },
   "inserted": {
     "plants": [
@@ -11,9 +16,6 @@
     ]
   },
   "deleted": {
-    "plants.plantId.2":{
-      "plantId": "2",
-      "name": "plant2"
-    }
+    "plants.plantId.2": 1
   }
 }

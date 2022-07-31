@@ -3,19 +3,11 @@ package dem.tool.diff.builder;
 import com.fasterxml.jackson.databind.JsonNode;
 import dem.tool.diff.DJsonContext;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import static dem.tool.diff.DJsonDiffUtils.buildPrefix;
+import static dem.tool.diff.DiffObjectCommon.buildPrefix;
 
-public class InsertPrefixKeyBuilder implements InsertValueBuilder{
-
-    private Map<String, Object> inserted = new HashMap<>();
-
-    @Override
-    public Map<String, Object> getDataHub() {
-        return inserted;
-    }
+public class UpdateFlattenKeyValueBuilder implements UpdateValueBuilder{
 
     @Override
     public void build(Map<String ,Object> dataHub,DJsonContext context) {
@@ -27,6 +19,4 @@ public class InsertPrefixKeyBuilder implements InsertValueBuilder{
     public void setInitialJsonNode(JsonNode jsonNode) {
 
     }
-
-
 }

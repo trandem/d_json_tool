@@ -7,8 +7,6 @@ import java.util.Map;
 
 public interface InsertValueBuilder{
 
-    Map<String ,Object> getDataHub();
-
     void build(Map<String ,Object> dataHub,DJsonContext context);
 
     void setInitialJsonNode(JsonNode jsonNode);
