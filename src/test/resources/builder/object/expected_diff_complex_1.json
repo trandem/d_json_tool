@@ -1,0 +1,84 @@
+{
+  "updated": {
+    "outerArr.id.dota.info.version": "2.0",
+    "outerArr.id.tc.info.innerArr.id.1.game": "tc11"
+  },
+  "deleted": {
+    "outerArr.id.dota.info.innerArr": [
+      {
+        "id": 1,
+        "game": "dota"
+      }
+    ],
+    "outerArr.id.tc.info.innerArr.id.2": {
+      "id": 2,
+      "game": "tc2"
+    },
+    "publisher": {
+      "name": "garena",
+      "year": 2010
+    },
+    "outerArr.id.lol": {
+      "id": "lol",
+      "info": {
+        "version": "1.0",
+        "innerArr": [
+          {
+            "id": 1,
+            "game": "lol"
+          }
+        ]
+      }
+    }
+  },
+  "inserted": {
+    "outerArr": [
+      {
+        "id": "lol1",
+        "info": {
+          "version": "1.0",
+          "innerArr": [
+            {
+              "id": 1,
+              "game": "lol"
+            }
+          ]
+        }
+      },
+      {
+        "id": "dota1",
+        "info": {
+          "version": "2.0",
+          "innerArr": []
+        }
+      },
+      {
+        "id": "tc",
+        "info": {
+          "innerArr": [
+            {
+              "id": 3,
+              "game": "tc3"
+            },
+            {
+              "id": 4,
+              "game": "tc4"
+            }
+          ],
+          "innerArr1": [
+            {
+              "id": 1,
+              "game": "tc11",
+              "arr": [
+                {
+                  "id": 4,
+                  "game": "tc4"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "updated": {
+
+  },
+  "inserted": {
+
+  },
+  "deleted": {
+    "employee.contact" : {
+      "email": "john@xyz.com",
+      "phone": "9999999"
+    }
+  }
+}

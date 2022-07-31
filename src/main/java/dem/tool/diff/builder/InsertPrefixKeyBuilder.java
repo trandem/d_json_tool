@@ -8,11 +8,13 @@ import java.util.Map;
 
 import static dem.tool.diff.DJsonDiffUtils.buildPrefix;
 
-public class UpdateAfterValueBuilder implements UpdateValueBuilder{
-    private Map<String, Object> updated = new HashMap<>();
+public class InsertPrefixKeyBuilder implements InsertValueBuilder{
+
+    private Map<String, Object> inserted = new HashMap<>();
+
     @Override
     public Map<String, Object> getDataHub() {
-        return updated;
+        return inserted;
     }
 
     @Override
@@ -22,7 +24,9 @@ public class UpdateAfterValueBuilder implements UpdateValueBuilder{
     }
 
     @Override
-    public void build(Map<String, Object> dataHub, String key, JsonNode afterNode, JsonNode beforeNode) {
-        dataHub.put(key,afterNode);
+    public void setInitialJsonNode(JsonNode jsonNode) {
+
     }
+
+
 }

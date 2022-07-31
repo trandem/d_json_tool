@@ -1,29 +1,30 @@
 package dem.tool.diff;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import dem.tool.diff.builder.*;
+import dem.tool.diff.builder.DeleteBeforeKeyBuilder;
+import dem.tool.diff.builder.DeleteValueBuilder;
+import dem.tool.diff.builder.InsertObjectBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-
-class DDiffJsonTest {
+class InsertObjectBuilderTest {
 
     private DDiffJson diffJson;
 
     @BeforeEach
     void setUp() {
         diffJson = new DDiffJson();
+        var insertBuilder = new InsertObjectBuilder();
+        diffJson.setInsertBuilder(insertBuilder);
     }
 
     @ParameterizedTest
     @CsvSource({"simple_json_sample/simple_before.json,simple_json_sample/simple_after.json,simple_json_sample/expected_simple_output.json",
-            "simple_json_sample/simple_before_1.json,simple_json_sample/simple_after_1.json,simple_json_sample/expected_simple_output_1.json"})
+            "simple_json_sample/simple_before_1.json,simple_json_sample/simple_after_1.json,simple_json_sample/expected_simple_output_1.json"
+    })
     void should_calculate_correctly_for_simple_object(String before, String after, String expected) {
         JsonNode beforeObject = DJacksonCommon.loadJsonFromFile(before);
         JsonNode afterObject = DJacksonCommon.loadJsonFromFile(after);
@@ -46,7 +47,7 @@ class DDiffJsonTest {
 
         String output = diffJson.toJsonFormatString();
 
-        String expected = DJacksonCommon.loadFromFileAsString("object_json_sample/expected_missing_or_null_contract_before_output.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_missing_or_null_contract_before_output.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
 
@@ -59,10 +60,9 @@ class DDiffJsonTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        String expected = DJacksonCommon.loadFromFileAsString("object_json_sample/expected_missing_or_null_contract_before_output.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_missing_or_null_contract_before_output.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
-
 
     @Test
     @DisplayName("should_calculate_correctly_when_before_have_contract_field_and_after_contract_null")
@@ -73,7 +73,7 @@ class DDiffJsonTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        String expected = DJacksonCommon.loadFromFileAsString("object_json_sample/expected_missing_or_null_contract_after_output.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_missing_or_null_contract_after_output.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
 
@@ -86,7 +86,7 @@ class DDiffJsonTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        String expected = DJacksonCommon.loadFromFileAsString("object_json_sample/expected_missing_or_null_contract_after_output.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_missing_or_null_contract_after_output.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
 
@@ -99,7 +99,7 @@ class DDiffJsonTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        String expected = DJacksonCommon.loadFromFileAsString("object_json_sample/expected_before_after_have_contract_output.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_before_after_have_contract_output.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
 
@@ -111,9 +111,8 @@ class DDiffJsonTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        String expected = DJacksonCommon.loadFromFileAsString("array_json_sample/expected_before_have_plant_array_after_missing_or_null_or_empty_plant.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_before_have_plant_array_after_missing_or_null_or_empty_plant.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
-
     }
 
     @Test
@@ -124,9 +123,8 @@ class DDiffJsonTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        String expected = DJacksonCommon.loadFromFileAsString("array_json_sample/expected_before_have_plant_array_after_missing_or_null_or_empty_plant.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_before_have_plant_array_after_missing_or_null_or_empty_plant.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
-
     }
 
     @Test
@@ -137,16 +135,8 @@ class DDiffJsonTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        String expected = DJacksonCommon.loadFromFileAsString("array_json_sample/expected_before_have_plant_array_after_missing_or_null_or_empty_plant.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_before_have_plant_array_after_missing_or_null_or_empty_plant.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
-    }
-
-    @Test
-    void should_throw_exception_when_not_register_key() {
-        JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("array_json_sample/before_have_array_plant.json");
-        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("array_json_sample/after_have_array_plant.json");
-
-        assertThrows(RuntimeException.class, () -> diffJson.diffScan(beforeObject, afterObject));
     }
 
     @Test
@@ -158,7 +148,7 @@ class DDiffJsonTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        String expected = DJacksonCommon.loadFromFileAsString("array_json_sample/expected_change_data_plant_array.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_change_data_plant_array.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
 
     }
@@ -172,7 +162,7 @@ class DDiffJsonTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        String expected = DJacksonCommon.loadFromFileAsString("array_json_sample/expected_after_have_plant_array_before_missing_or_null_or_empty_plant.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_after_have_plant_array_before_missing_or_null_or_empty_plant.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
 
@@ -184,7 +174,7 @@ class DDiffJsonTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        String expected = DJacksonCommon.loadFromFileAsString("array_json_sample/expected_after_have_plant_array_before_missing_or_null_or_empty_plant.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_after_have_plant_array_before_missing_or_null_or_empty_plant.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
 
@@ -198,8 +188,8 @@ class DDiffJsonTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
-        System.out.println(output);
-        String expected = DJacksonCommon.loadFromFileAsString("array_json_sample/expected_after_have_plant_array_before_missing_or_null_or_empty_plant.json");
+
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_after_have_plant_array_before_missing_or_null_or_empty_plant.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
 
@@ -212,7 +202,7 @@ class DDiffJsonTest {
 
         String output = diffJson.toJsonFormatString();
 
-        String expected = DJacksonCommon.loadFromFileAsString("array_json_sample/expected_change_value_array.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_change_value_array.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
 
@@ -226,8 +216,26 @@ class DDiffJsonTest {
         diffJson.diffScan(beforeObject, afterObject);
 
         String output = diffJson.toJsonFormatString();
+        System.out.println(output);
 
-        String expected = DJacksonCommon.loadFromFileAsString("expected_diff_complex.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_diff_complex.json");
+        DJacksonCommon.assertFullOutputEvent(expected, output);
+    }
+
+    @Test
+    void complex_1_json() {
+        JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("before_complex.json");
+        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("after_complex_1.json");
+        diffJson.registerObjectKeyInArrayByPath("outerArr","id");
+        diffJson.registerObjectKeyInArrayByPath("outerArr.info.innerArr","id");
+        diffJson.registerObjectKeyInArrayByPath("outerArr.info.innerArr1","id");
+
+        diffJson.diffScan(beforeObject, afterObject);
+
+        String output = diffJson.toJsonFormatString();
+        System.out.println(output);
+
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_diff_complex_1.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
 
@@ -244,7 +252,9 @@ class DDiffJsonTest {
 
         String output = diffJson.toJsonFormatString();
 
-        String expected = DJacksonCommon.loadFromFileAsString("builder/expected_delete_keep_key_builder.json");
+        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_delete_keep_key_builder.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
+
+
 }

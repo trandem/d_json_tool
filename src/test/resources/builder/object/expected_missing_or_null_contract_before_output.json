@@ -1,0 +1,18 @@
+{
+  "updated": {
+    "employee.fullName": "John 1"
+  },
+  "inserted": {
+    "employee": {
+      "employId": "12122",
+      "contact": {
+        "email": "john@xyz.com",
+        "phone": "9999999"
+      }
+    }
+  },
+  "deleted": {
+    "employee.id": "1212",
+    "dem": 16
+  }
+}
