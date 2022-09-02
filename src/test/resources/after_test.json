@@ -1,0 +1,645 @@
+{
+  "id": 54902314,
+  "productSetId": 186,
+  "masterId": 48962414,
+  "masterSku": "6922548879372",
+  "superId": 0,
+  "superSku": "",
+  "sellerId": 7350,
+  "sellerProductCode": "R-208VN-WS",
+  "name": "Lò Vi Sóng Sharp R-208VN-WS (20L) - Hàng Chính Hãng",
+  "sku": "6185091551663",
+  "minCode": "6185091551663",
+  "type": "simple",
+  "status": 1,
+  "visibility": 1,
+  "price": 1199000,
+  "listPrice": null,
+  "specialPrice": null,
+  "currentPrice": 1199000,
+  "originalPrice": 1199000,
+  "specialFrom": null,
+  "specialTo": null,
+  "quantity": 1,
+  "quantityAvailable": null,
+  "availability": 2,
+  "reviewsCount": null,
+  "ratingSummary": null,
+  "ratingPoint": null,
+  "orderCount": null,
+  "favouriteCount": null,
+  "createdAt": "2020-05-16 16:25:16",
+  "createdBy": "congtyphathong@gmail.com",
+  "updatedAt": "2020-05-16 16:25:16",
+  "updatedBy": "congtyphathong@gmail.com",
+  "lastUpdatedAt": "2020-05-16 16:25:16",
+  "approvedAt": null,
+  "approvedBy": null,
+  "approvalStatus": "active",
+  "entityType": "seller_simple",
+  "approvalDescription": null,
+  "workflowId": null,
+  "blockedAt": null,
+  "unblockedAt": null,
+  "syncedAt": null,
+  "version": 1,
+  "priceId": null,
+  "specialPriceId": null,
+  "intAttributeValues": {
+    "brand_country": {
+      "code": "brand_country",
+      "type": "int",
+      "value": 26285
+    },
+    "color": {
+      "code": "color",
+      "type": "int",
+      "value": 1747
+    },
+    "only_ship_to": {
+      "code": "only_ship_to",
+      "type": "int",
+      "value": null
+    },
+    "warranty_service_type": {
+      "code": "warranty_service_type",
+      "type": "int",
+      "value": null
+    },
+    "warranty_time_unit": {
+      "code": "warranty_time_unit",
+      "type": "int",
+      "value": 592157
+    },
+    "origin": {
+      "code": "origin",
+      "type": "int",
+      "value": 10570
+    },
+    "support_p24h": {
+      "code": "support_p24h",
+      "type": "int",
+      "value": 0
+    },
+    "use_new_layout_lifestyle": {
+      "code": "use_new_layout_lifestyle",
+      "type": "int",
+      "value": 1
+    },
+    "giftwrap": {
+      "code": "giftwrap",
+      "type": "int",
+      "value": 1
+    },
+    "support_next_day_delivery": {
+      "code": "support_next_day_delivery",
+      "type": "int",
+      "value": 0
+    },
+    "warranty_form": {
+      "code": "warranty_form",
+      "type": "int",
+      "value": null
+    },
+    "seller_delivery_method": {
+      "code": "seller_delivery_method",
+      "type": "int",
+      "value": null
+    },
+    "is_warranty_applied": {
+      "code": "is_warranty_applied",
+      "type": "int",
+      "value": 0
+    },
+    "support_subscription": {
+      "code": "support_subscription",
+      "type": "int",
+      "value": 0
+    },
+    "is_hot": {
+      "code": "is_hot",
+      "type": "int",
+      "value": 0
+    },
+    "supplier": {
+      "code": "supplier",
+      "type": "int",
+      "value": 628857
+    },
+    "tag_discount_option": {
+      "code": "tag_discount_option",
+      "type": "int",
+      "value": null
+    },
+    "brand": {
+      "code": "brand",
+      "type": "int",
+      "value": 19912
+    },
+    "seller_supply_method": {
+      "code": "seller_supply_method",
+      "type": "int",
+      "value": 240633
+    },
+    "support_p2h_delivery": {
+      "code": "support_p2h_delivery",
+      "type": "int",
+      "value": 0
+    },
+    "is_erp_dimensions_updated": {
+      "code": "is_erp_dimensions_updated",
+      "type": "int",
+      "value": 1
+    },
+    "support_cod": {
+      "code": "support_cod",
+      "type": "int",
+      "value": 1
+    },
+    "visibility": {
+      "code": "visibility",
+      "type": "int",
+      "value": 1
+    },
+    "is_advertisable_gg": {
+      "code": "is_advertisable_gg",
+      "type": "int",
+      "value": 1
+    },
+    "vat": {
+      "code": "vat",
+      "type": "int",
+      "value": 21603
+    },
+    "product_imei": {
+      "code": "product_imei",
+      "type": "int",
+      "value": null
+    },
+    "rma_status": {
+      "code": "rma_status",
+      "type": "int",
+      "value": 1
+    },
+    "is_sampling": {
+      "code": "is_sampling",
+      "type": "int",
+      "value": 0
+    },
+    "dropship": {
+      "code": "dropship",
+      "type": "int",
+      "value": 0
+    },
+    "is_fresh": {
+      "code": "is_fresh",
+      "type": "int",
+      "value": 0
+    },
+    "po_type": {
+      "code": "po_type",
+      "type": "int",
+      "value": 111350
+    },
+    "is_free_gift": {
+      "code": "is_free_gift",
+      "type": "int",
+      "value": 31828
+    },
+    "unit": {
+      "code": "unit",
+      "type": "int",
+      "value": 28014
+    },
+    "tag_display_option": {
+      "code": "tag_display_option",
+      "type": "int",
+      "value": null
+    },
+    "loai_san_pham": {
+      "code": "loai_san_pham",
+      "type": "int",
+      "value": null
+    },
+    "is_warranty_forever": {
+      "code": "is_warranty_forever",
+      "type": "int",
+      "value": 0
+    },
+    "tag_is_app_only": {
+      "code": "tag_is_app_only",
+      "type": "int",
+      "value": 0
+    },
+    "is_imported": {
+      "code": "is_imported",
+      "type": "int",
+      "value": 0
+    },
+    "product_serial": {
+      "code": "product_serial",
+      "type": "int",
+      "value": null
+    },
+    "tag_status": {
+      "code": "tag_status",
+      "type": "int",
+      "value": 0
+    },
+    "bulky": {
+      "code": "bulky",
+      "type": "int",
+      "value": 0
+    },
+    "is_able_installment": {
+      "code": "is_able_installment",
+      "type": "int",
+      "value": null
+    },
+    "sku_5_sao": {
+      "code": "sku_5_sao",
+      "type": "int",
+      "value": null
+    },
+    "preorder": {
+      "code": "preorder",
+      "type": "int",
+      "value": 0
+    },
+    "promotion": {
+      "code": "promotion",
+      "type": "int",
+      "value": null
+    }
+  },
+  "decimalAttributeValues": {
+    "fob_price_usd": {
+      "code": "fob_price_usd",
+      "type": "decimal",
+      "value": null
+    },
+    "standard_price": {
+      "code": "standard_price",
+      "type": "decimal",
+      "value": null
+    },
+    "fob_price": {
+      "code": "fob_price",
+      "type": "decimal",
+      "value": null
+    }
+  },
+  "textAttributeValues": {
+    "huong_dan_bao_quan": {
+      "code": "huong_dan_bao_quan",
+      "type": "text",
+      "value": ""
+    },
+    "short_description": {
+      "code": "short_description",
+      "type": "text",
+      "value": ""
+    },
+    "description": {
+      "code": "description",
+      "type": "text",
+      "value": "hoank description"
+    },
+    "chat_lieu": {
+      "code": "chat_lieu",
+      "type": "text",
+      "value": ""
+    },
+    "huong_dan_su_dung": {
+      "code": "huong_dan_su_dung",
+      "type": "text",
+      "value": ""
+    },
+    "lap_dat": {
+      "code": "lap_dat",
+      "type": "text",
+      "value": ""
+    },
+    "luu_y": {
+      "code": "luu_y",
+      "type": "text",
+      "value": ""
+    },
+    "quy_cach_dong_goi": {
+      "code": "quy_cach_dong_goi",
+      "type": "text",
+      "value": ""
+    },
+    "dimensions": {
+      "code": "dimensions",
+      "type": "text",
+      "value": "<p>45.2 x 26.2 x 23 cm</p>"
+    },
+    "product_top_features": {
+      "code": "product_top_features",
+      "type": "text",
+      "value": "Dung tích: 20L \nCông suất 700W tiết kiện thời gian, điện năng\nDễ dàng điều chỉnh 6 mức công suất\nBảng điều khiển Anh – Việt dễ sử dụng\nKích thước nhỏ gọn tiết kiệm không gian"
+    }
+  },
+  "varcharAttributeValues": {
+    "product_height": {
+      "code": "product_height",
+      "type": "varchar",
+      "value": "20"
+    },
+    "request": {
+      "code": "request",
+      "type": "varchar",
+      "value": ""
+    },
+    "jd_id": {
+      "code": "jd_id",
+      "type": "varchar",
+      "value": ""
+    },
+    "loai_lo": {
+      "code": "loai_lo",
+      "type": "varchar",
+      "value": ""
+    },
+    "product_weight": {
+      "code": "product_weight",
+      "type": "varchar",
+      "value": "10.5 Kg"
+    },
+    "dienap": {
+      "code": "dienap",
+      "type": "varchar",
+      "value": ""
+    },
+    "custom_design": {
+      "code": "custom_design",
+      "type": "varchar",
+      "value": ""
+    },
+    "tinh_nang": {
+      "code": "tinh_nang",
+      "type": "varchar",
+      "value": ""
+    },
+    "kich_thuoc_dong_goi": {
+      "code": "kich_thuoc_dong_goi",
+      "type": "varchar",
+      "value": ""
+    },
+    "capacity": {
+      "code": "capacity",
+      "type": "varchar",
+      "value": "20 L"
+    },
+    "sponsor_fee_by_supplier": {
+      "code": "sponsor_fee_by_supplier",
+      "type": "varchar",
+      "value": ""
+    },
+    "option1_label": {
+      "code": "option1_label",
+      "type": "varchar",
+      "value": ""
+    },
+    "cong_suat": {
+      "code": "cong_suat",
+      "type": "varchar",
+      "value": "Tiêu thụ vi sóng 1200W\nVi Sóng 700W"
+    },
+    "sponsor_fee_by_md": {
+      "code": "sponsor_fee_by_md",
+      "type": "varchar",
+      "value": ""
+    },
+    "seller_delivery_leadtime_minutes": {
+      "code": "seller_delivery_leadtime_minutes",
+      "type": "varchar",
+      "value": ""
+    },
+    "option1": {
+      "code": "option1",
+      "type": "varchar",
+      "value": ""
+    },
+    "delivery_attributes": {
+      "code": "delivery_attributes",
+      "type": "varchar",
+      "value": ""
+    },
+    "option2": {
+      "code": "option2",
+      "type": "varchar",
+      "value": ""
+    },
+    "bang_dieu_khien": {
+      "code": "bang_dieu_khien",
+      "type": "varchar",
+      "value": ""
+    },
+    "tag_coupon_code": {
+      "code": "tag_coupon_code",
+      "type": "varchar",
+      "value": ""
+    },
+    "danh_muc_hang_hoa": {
+      "code": "danh_muc_hang_hoa",
+      "type": "varchar",
+      "value": ""
+    },
+    "sponsor_event_name": {
+      "code": "sponsor_event_name",
+      "type": "varchar",
+      "value": ""
+    },
+    "shipping_volume": {
+      "code": "shipping_volume",
+      "type": "varchar",
+      "value": ""
+    },
+    "item_model_number": {
+      "code": "item_model_number",
+      "type": "varchar",
+      "value": "R-208VN-WS"
+    },
+    "product_volume_metric": {
+      "code": "product_volume_metric",
+      "type": "varchar",
+      "value": "10"
+    },
+    "product_width": {
+      "code": "product_width",
+      "type": "varchar",
+      "value": "30"
+    },
+    "tag_discount": {
+      "code": "tag_discount",
+      "type": "varchar",
+      "value": ""
+    },
+    "warranty_time_period": {
+      "code": "warranty_time_period",
+      "type": "varchar",
+      "value": ""
+    },
+    "jd_stock_range": {
+      "code": "jd_stock_range",
+      "type": "varchar",
+      "value": ""
+    },
+    "name": {
+      "code": "name",
+      "type": "varchar",
+      "value": null
+    },
+    "preorderdescript": {
+      "code": "preorderdescript",
+      "type": "varchar",
+      "value": ""
+    },
+    "option2_label": {
+      "code": "option2_label",
+      "type": "varchar",
+      "value": ""
+    },
+    "product_length": {
+      "code": "product_length",
+      "type": "varchar",
+      "value": "50"
+    }
+  },
+  "dateTimeAttributeValues": {
+    "news_from_date": {
+      "code": "news_from_date",
+      "type": "datetime",
+      "value": null
+    },
+    "news_to_date": {
+      "code": "news_to_date",
+      "type": "datetime",
+      "value": null
+    },
+    "start_processing_date": {
+      "code": "start_processing_date",
+      "type": "datetime",
+      "value": null
+    },
+    "preorder_date": {
+      "code": "preorder_date",
+      "type": "datetime",
+      "value": null
+    },
+    "tag_begin_date": {
+      "code": "tag_begin_date",
+      "type": "datetime",
+      "value": null
+    },
+    "tag_end_date": {
+      "code": "tag_end_date",
+      "type": "datetime",
+      "value": null
+    }
+  },
+  "superAttributes": [],
+  "superLinks": [],
+  "productMedias": [],
+  "parentProductId": null,
+  "children": [],
+  "warehouses": [],
+  "storeProducts": [],
+  "storeWarehouses": [],
+  "inventory": {
+    "id": 36684876,
+    "product_id": 134255303,
+    "qty": 0,
+    "version": 1,
+    "productId": 134255303,
+    "entityId": "36684876",
+    "deleted": false,
+    "inventory_type_id": 2,
+    "fulfillment_type": "dropship",
+    "qty_available": null,
+    "min_sale_qty": null,
+    "max_sale_qty": null,
+    "min_qty": 1,
+    "is_in_stock": 0,
+    "notify_stock_qty": null,
+    "manage_stock": 0,
+    "use_config_min_qty": 0,
+    "use_config_min_sale_qty": 1,
+    "use_config_max_sale_qty": 1,
+    "use_config_notify_stock_qty": 0,
+    "use_config_manage_stock": 1,
+    "preorder_date": null,
+    "can_be_purchased": 1,
+    "rollback_inventory_type_id": null,
+    "max_offset": null
+  },
+  "propertyChanged": {
+    "changedProperties": {
+      "availability": true,
+      "quantity_available": true
+    },
+    "changedTags": {}
+  },
+  "createdTimestamp": 1640794203697,
+  "defaultSpid": null,
+  "createdBySeller": null,
+  "sellerInfo": null,
+  "freeShipBadge": null,
+  "freeShipCampaign": null,
+  "bundleDeal": null,
+  "categories": [
+    {
+      "categoryId": 1882,
+      "isPrimary": 0,
+      "isDefault": null,
+      "position": null,
+      "capturedFromEvent": false
+    },
+    {
+      "categoryId": 1884,
+      "isPrimary": 0,
+      "isDefault": null,
+      "position": null,
+      "capturedFromEvent": false
+    },
+    {
+      "categoryId": 2022,
+      "isPrimary": 0,
+      "isDefault": null,
+      "position": null,
+      "capturedFromEvent": false
+    },
+    {
+      "categoryId": 2036,
+      "isPrimary": 1,
+      "isDefault": null,
+      "position": null,
+      "capturedFromEvent": false
+    },
+    {
+      "categoryId": 43358,
+      "isPrimary": 0,
+      "isDefault": null,
+      "position": null,
+      "capturedFromEvent": false
+    },
+    {
+      "categoryId": 43618,
+      "isPrimary": 0,
+      "isDefault": null,
+      "position": null,
+      "capturedFromEvent": false
+    },
+    {
+      "categoryId": 44756,
+      "isPrimary": 0,
+      "isDefault": null,
+      "position": null,
+      "capturedFromEvent": false
+    }
+  ],
+  "freegiftItems": null,
+  "extraData": {}
+}

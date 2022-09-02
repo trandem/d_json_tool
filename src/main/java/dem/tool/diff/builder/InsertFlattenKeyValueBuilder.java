@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dem.tool.diff.DJsonContext;
 
 import java.util.Map;
+import java.util.Set;
 
 import static dem.tool.diff.DiffObjectCommon.buildPrefix;
 
@@ -18,6 +19,11 @@ public class InsertFlattenKeyValueBuilder implements InsertValueBuilder {
 
     @Override
     public void setInitialJsonNode(JsonNode jsonNode) {
+
+    }
+
+    @Override
+    public void setIgnorePaths(Set<String> ignorePaths) {
 
     }
 }

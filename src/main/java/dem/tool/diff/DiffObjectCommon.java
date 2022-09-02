@@ -3,10 +3,7 @@ package dem.tool.diff;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("unchecked")
 public class DiffObjectCommon {
@@ -62,7 +59,7 @@ public class DiffObjectCommon {
             Object stored = dataHub.get(path);
             if (stored == null) {
                 if (node.getNodeType() == JsonNodeType.OBJECT) {
-                    Map<String, Object> data = new HashMap<>();
+                    Map<String, Object> data = new LinkedHashMap<>();
                     dataHub.put(path, data);
                     dataHub = data;
                     continue;
@@ -110,7 +107,7 @@ public class DiffObjectCommon {
 
     private static Map<String, Object> getContinueMapInList(Map<String, Object> map, String path, String key, Object data) {
         boolean isFound = false;
-        Map<String, Object> continueMap = new HashMap<>();
+        Map<String, Object> continueMap = new LinkedHashMap<>();
         List<Map<String, Object>> list = (List<Map<String, Object>>) map.get(path);
         for (var m : list) {
             if (m.get(key).toString().equals(data.toString())) {
@@ -129,7 +126,7 @@ public class DiffObjectCommon {
     }
 
     private static Map<String, Object> createContinueMap(Map<String, Object> map, String path, String key, Object data) {
-        Map<String, Object> continueMap = new HashMap<>();
+        Map<String, Object> continueMap = new LinkedHashMap<>();
         continueMap.put(key, data);
 
         List<Map<String, Object>> list = new LinkedList<>();

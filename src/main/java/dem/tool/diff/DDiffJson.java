@@ -3,6 +3,7 @@ package dem.tool.diff;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import dem.tool.diff.builder.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,19 +22,21 @@ public class DDiffJson {
     private final Map<String, Object> inserted;
 
     private final Map<String, String> keyRegisteredByPath;
+    private final Set<String> excludeField;
 
     @Setter
-    private InsertValueBuilder insertBuilder = new InsertFlattenKeyValueBuilder();
+    private InsertValueBuilder insertBuilder = new InsertObjectBuilder();
     @Setter
     private DeleteValueBuilder deleteBuilder = new DeleteFlattenKeyBuilder();
     @Setter
-    private UpdateValueBuilder updateBuilder = new UpdateFlattenKeyValueBuilder();
+    private UpdateValueBuilder updateBuilder = new UpdateObjectBuilder();
 
     public DDiffJson() {
-        updated = new HashMap<>();
-        deleted = new HashMap<>();
-        inserted = new HashMap<>();
+        updated = new LinkedHashMap<>();
+        deleted = new LinkedHashMap<>();
+        inserted = new LinkedHashMap<>();
         keyRegisteredByPath = new HashMap<>();
+        excludeField = new HashSet<>();
     }
 
     public String toJsonFormatString() {
@@ -42,6 +45,10 @@ public class DDiffJson {
 
     public void registerObjectKeyInArrayByPath(String path, String key) {
         keyRegisteredByPath.put(path, key);
+    }
+
+    public void excludeCompareFieldPath(String fieldPath) {
+        excludeField.add(fieldPath);
     }
 
     /**
@@ -59,10 +66,13 @@ public class DDiffJson {
      * @param afterNode  json of object after running logic
      */
     public void diffScan(JsonNode beforeNode, JsonNode afterNode) {
+        // check ignore keypath same with id
         DJsonContext context = new DJsonContext();
         context.setRegisterKeyMap(keyRegisteredByPath);
         insertBuilder.setInitialJsonNode(afterNode);
+        insertBuilder.setIgnorePaths(excludeField);
         updateBuilder.setInitialJsonNode(afterNode);
+        updateBuilder.setIgnorePaths(excludeField);
         diffScan(context, beforeNode, afterNode);
     }
 
@@ -253,7 +263,7 @@ public class DDiffJson {
                 contextI.setValue(afterObjectJson);
                 var keyPath = String.join(".", contextI.getPaths());
                 contextI.addKey(keyPath, keyTextValue);
-                insertBuilder.build(inserted,contextI);
+                insertBuilder.build(inserted, contextI);
             }
             checkedKey.add(keyTextValue);
         }
@@ -293,7 +303,7 @@ public class DDiffJson {
                 contextD.setValue(jsonObject);
                 var keyPath = String.join(".", contextD.getPaths());
                 contextD.addKey(keyPath, keyValue.asText());
-                deleteBuilder.build(deleted,contextD);
+                deleteBuilder.build(deleted, contextD);
             }
         }
     }
@@ -328,7 +338,7 @@ public class DDiffJson {
         }
 
         if (!isNodeContainsValidKey) {
-            throw new UnsupportedOperationException("not contains valid key "+ objectKey);
+            throw new UnsupportedOperationException("not contains valid key " + objectKey);
         }
     }
 

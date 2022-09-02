@@ -257,4 +257,36 @@ class InsertObjectBuilderTest {
         String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_delete_keep_key_builder.json");
         DJacksonCommon.assertFullOutputEvent(expected, output);
     }
+
+    @Test
+    void excludeTimeStamp() {
+        JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("before_test.json");
+        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("after_test.json");
+
+        DeleteValueBuilder diffValueBuilder = new DeleteFlattenKeyBuilder();
+        diffJson.setDeleteBuilder(diffValueBuilder);
+        diffJson.registerObjectKeyInArrayByPath("categories","categoryId");
+        diffJson.excludeCompareFieldPath("createdTimestamp");
+
+        diffJson.diffScan(beforeObject, afterObject);
+
+        String output = diffJson.toJsonFormatString();
+        System.out.println(output);
+    }
+
+    @Test
+    @DisplayName("should_calculate_correctly_when_before_not_have_contract_and_after_have_contract_object")
+    void before_not_have_contract_and_after_have_contract_object_exclude_email() {
+        JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("object_json_sample/object_before_not_have_contract_field.json");
+        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("object_json_sample/object_after_add_contract_object.json");
+
+        diffJson.excludeCompareFieldPath("employee.contact.email");
+        diffJson.diffScan(beforeObject, afterObject);
+
+        String output = diffJson.toJsonFormatString();
+        System.out.println(output);
+//        String expected = DJacksonCommon.loadFromFileAsString("builder/object/expected_missing_or_null_contract_before_output.json");
+//        DJacksonCommon.assertFullOutputEvent(expected, output);
+    }
+
 }
