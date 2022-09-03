@@ -259,17 +259,19 @@ class InsertObjectBuilderTest {
 
     @Test
     void excludeTimeStamp() {
-        JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("before_test.json");
-        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("after_test.json");
+        JsonNode beforeObject = DJacksonCommon.loadJsonFromFile("before_timestamp.json");
+        JsonNode afterObject = DJacksonCommon.loadJsonFromFile("after_timestamp.json");
+        var diffCompare = new DDiffJsonBuilder()
+                .insertBuilder( new InsertObjectBuilder())
+                .updateBuilder(new UpdateObjectBuilder())
+                .excludeCompareFieldPath("createTime")
+                .excludeCompareFieldPath("employee.updateTime")
+                .deleteBuilder(new DeleteFlattenKeyBuilder())
+                .build();
 
-        DeleteValueBuilder diffValueBuilder = new DeleteFlattenKeyBuilder();
-        diffJson.setDeleteBuilder(diffValueBuilder);
-        diffJson.registerObjectKeyInArrayByPath("categories","categoryId");
-        diffJson.excludeCompareFieldPath("createdTimestamp");
+        diffCompare.diffScan(beforeObject, afterObject);
 
-        diffJson.diffScan(beforeObject, afterObject);
-
-        String output = diffJson.toJsonFormatString();
+        String output = diffCompare.toJsonFormatString();
         System.out.println(output);
     }
 

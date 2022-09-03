@@ -1,0 +1,13 @@
+{
+  "employee": {
+    "employId": "12122",
+    "fullName": "John 1",
+    "updateTime" : 13225124312,
+    "age": 35,
+    "contact": {
+      "email": "john@xyz.com",
+      "phone": "9999999"
+    }
+  },
+   "createTime" : 1241312412
+}
