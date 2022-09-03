@@ -17,12 +17,11 @@ class InsertObjectBuilderTest {
 
     @BeforeEach
     void setUp() {
-        diffJson = new DDiffJson();
-        var insertBuilder = new InsertObjectBuilder();
-        var updateBuilder = new UpdateObjectBuilder();
-
-        diffJson.setInsertBuilder(insertBuilder);
-        diffJson.setUpdateBuilder(updateBuilder);
+        diffJson = new DDiffJsonBuilder()
+                .insertBuilder( new InsertObjectBuilder())
+                .updateBuilder(new UpdateObjectBuilder())
+                .deleteBuilder(new DeleteFlattenKeyBuilder())
+                .build();
 
     }
 

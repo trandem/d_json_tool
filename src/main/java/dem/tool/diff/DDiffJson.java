@@ -3,7 +3,6 @@ package dem.tool.diff;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import dem.tool.diff.builder.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,22 +20,27 @@ public class DDiffJson {
     @Getter
     private final Map<String, Object> inserted;
 
-    private final Map<String, String> keyRegisteredByPath;
-    private final Set<String> excludeField;
+    private Map<String, String> keyRegisteredByPath;
+    private Set<String> excludeField;
 
     @Setter
-    private InsertValueBuilder insertBuilder = new InsertObjectBuilder();
+    private InsertValueBuilder insertBuilder;
     @Setter
-    private DeleteValueBuilder deleteBuilder = new DeleteFlattenKeyBuilder();
+    private DeleteValueBuilder deleteBuilder;
     @Setter
-    private UpdateValueBuilder updateBuilder = new UpdateObjectBuilder();
+    private UpdateValueBuilder updateBuilder;
 
-    public DDiffJson() {
+
+    public DDiffJson(Map<String, String> keyRegisteredByPath, Set<String> excludeField, InsertValueBuilder insertBuilder, DeleteValueBuilder deleteBuilder, UpdateValueBuilder updateBuilder) {
+        this.keyRegisteredByPath = keyRegisteredByPath;
+        this.excludeField = excludeField;
+        this.insertBuilder = insertBuilder;
+        this.deleteBuilder = deleteBuilder;
+        this.updateBuilder = updateBuilder;
+
         updated = new LinkedHashMap<>();
         deleted = new LinkedHashMap<>();
         inserted = new LinkedHashMap<>();
-        keyRegisteredByPath = new HashMap<>();
-        excludeField = new HashSet<>();
     }
 
     public String toJsonFormatString() {
